@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import { getLatestBracket } from '../libs/bracket';
-import Bracket from '../components/bracket';
+import { getDoubleElim } from '../libs/liquipedia';
+import DoubleElim from '../components/bracket';
 
-export default function Home({ latestBracket }) {
+export default function Home({ teams }) {
   return (
     <div className={styles.container}>
       <Head>
@@ -12,7 +12,7 @@ export default function Home({ latestBracket }) {
       </Head>
 
       <main className={styles.content}>
-        <Bracket bracket={latestBracket} />
+        <DoubleElim teams={teams} />
       </main>
 
       <footer className={styles.footer}>
@@ -23,10 +23,12 @@ export default function Home({ latestBracket }) {
 }
 
 export async function getStaticProps() {
-  const latestBracket = await getLatestBracket();
+  const event = 'Rocket_League_Championship_Series%2F2022-23%2FSpring';
+  const bracketSection = 13;
+  const teams = await getDoubleElim(event, bracketSection);
   return {
     props: {
-      latestBracket,
+      teams,
     },
   };
 }
