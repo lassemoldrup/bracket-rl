@@ -5,14 +5,16 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: var(--main-bg-color);
 }
 
 .content {
   flex-grow: 1;
+  display: flex;
+  align-items: center;
 }
 
 .footer {
   width: 100%;
   padding: 1rem;
+  text-align: center;
 }

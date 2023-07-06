@@ -7,14 +7,20 @@ export async function getDoubleElim(event, bracketSection) {
     'User-Agent': 'BracketRL/1.0 (lasse.moeldrup@gmail.com)',
     'Accept-Encoding': 'gzip',
   });
-  // const rawBracketResponse = await fetch(`${APIBaseURL}action=parse&format=json&page=${event}&prop=wikitext%7Cimages&section=${bracketSection}`, {
+  // const bracketRequestUrl = APIBaseURL + new URLSearchParams({
+  //   'action': 'parse',
+  //   'format': 'json',
+  //   'page': event,
+  //   'prop': 'wikitext|images',
+  //   'section': bracketSection,
+  // });
+  // const rawBracketResponse = await fetch(bracketRequestUrl, {
   //   headers
   // });
 
   // if (!rawBracketResponse.ok) {
-  if (false) {
-    throw 'Failed to get bracket';
-  }
+  //   throw 'Failed to get bracket';
+  // }
 
   // const data = JSON.parse(await rawBracketResponse.text());
   const data = JSON.parse(await fs.readFile('data.txt', { encoding: 'utf8' }));

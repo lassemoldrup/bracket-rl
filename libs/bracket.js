@@ -58,13 +58,24 @@ export class BracketNode {
 
 export class TeamSlot {
   node;
-  team;
-  #score;
+  #team = null;
+  #score = null;
+  #bracketResetScore = null;
 
-  constructor(node, team = null, score = null) {
+  constructor(node) {
     this.node = node;
-    this.team = team;
-    this.#score = score;
+  }
+
+  get team() {
+    return this.#team;
+  }
+
+  set team(value) {
+    this.#team = value;
+    if (this.score === this.node.winsNeeded && this.node.winSlot)
+      this.node.winSlot.team = value;
+    if (this.node.getOther(this).score === this.node.winsNeeded && this.node.lossSlot)
+      this.node.lossSlot.team = value;
   }
 
   get score() {
@@ -72,16 +83,48 @@ export class TeamSlot {
   }
 
   set score(value) {
+    if (value !== null) {
+      value = Math.min(value, this.node.winsNeeded);
+      value = Math.max(value, 0);
+    }
+
     if (this.score === this.node.winsNeeded && value !== this.node.winsNeeded && this.node.winSlot) {
       this.node.winSlot.team = null;
-      if (this.node.lossSlot)
+      this.node.winSlot.score = null;
+      if (this.node.lossSlot) {
         this.node.lossSlot.team = null;
+        this.node.lossSlot.score = null;
+      }
     }
-    if (value === this.node.winsNeeded && this.node.winSlot) {
-      this.node.winSlot.team = this.name;
+
+    if (value === this.node.winsNeeded && value != this.#score) {
+      if (this.node.getOther(this).score === value)
+        this.node.getOther(this).score = null;
+      if (this.node.winSlot)
+        this.node.winSlot.team = this.team;
       if (this.node.lossSlot)
-        this.node.lossSlot.team = this.node.getOther(this).name;
+        this.node.lossSlot.team = this.node.getOther(this).team;
+      this.#bracketResetScore = null;
+      this.node.getOther(this).bracketResetScore = null;
     }
-    this.score = value;
+
+    this.#score = value;
+  }
+
+  get bracketResetScore() {
+    return this.#bracketResetScore;
+  }
+
+  set bracketResetScore(value) {
+    if (value !== null) {
+      value = Math.min(value, this.node.winsNeeded);
+      value = Math.max(value, 0);
+    }
+
+    if (value === this.node.winsNeeded && this.node.getOther(this).bracketResetScore === value) {
+      this.node.getOther(this).bracketResetScore = null;
+    }
+
+    this.#bracketResetScore = value;
   }
 }

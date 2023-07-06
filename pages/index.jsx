@@ -16,14 +16,14 @@ export default function Home({ teams }) {
       </main>
 
       <footer className={styles.footer}>
-        Footer
+        Bracket data and images from <a href='https://liquipedia.net'>Liquipedia</a>.
       </footer>
     </div>
   )
 }
 
 export async function getStaticProps() {
-  const event = 'Rocket_League_Championship_Series%2F2022-23%2FSpring';
+  const event = 'Rocket_League_Championship_Series/2022-23/Spring';
   const bracketSection = 13;
   const teams = await getDoubleElim(event, bracketSection);
   return {
