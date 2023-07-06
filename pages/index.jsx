@@ -7,7 +7,7 @@ export default function Home({ teams }) {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Create Next App</title>
+        <title>Rocket League Bracket</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
