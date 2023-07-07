@@ -127,4 +127,10 @@ export class TeamSlot {
 
     this.#bracketResetScore = value;
   }
+
+  hasWon() {
+    if (this.node.bracketReset && this.node.slots[1].score === this.node.winsNeeded)
+      return this.#bracketResetScore === this.node.winsNeeded;
+    return this.#score === this.node.winsNeeded;
+  }
 }

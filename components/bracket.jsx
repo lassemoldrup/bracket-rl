@@ -84,7 +84,7 @@ function Team({ slot, redrawBracket }) {
     + (slot.score === slot.node.winsNeeded ? ' ' + styles['max-score'] : '');
 
   const bracketResetScoreClassName = styles.score
-    + (slot.bracketResetScore === slot.node.winsNeeded ? ' ' + styles['max-score'] : '');
+    + (slot.hasWon() ? ' ' + styles['max-score'] : '');
 
   return (
     <div className={styles['team-container']}>
@@ -92,7 +92,7 @@ function Team({ slot, redrawBracket }) {
         {slot.team &&
           <>
             <Image src={slot.team.image} width={15} height={15} alt={slot.team.team + ' logo'} />
-            <span>{slot.team.team}</span>
+            <span className={slot.hasWon() ? styles['max-score'] : ''}>{slot.team.team}</span>
           </>
         }
       </div>
