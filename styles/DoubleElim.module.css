@@ -3,22 +3,29 @@
   align-items: stretch;
   padding: 20px;
   font-size: 10pt;
+  --upper-bracket-height: calc(51px * 8 + 15px * 8);
+  --lower-bracket-height: calc(var(--upper-bracket-height) / 2);
+  --bracket-header-height: 40px;
+  --bracket-gap: 40px;
+}
+
+.bracket hr {
+  border: none;
+  height: 1px;
+  background: var(--border-color);
+  margin: 0;
 }
 
 .column {
   display: grid;
-  grid-template-rows: 45px 6fr 45px 3fr;
-  margin-right: 40px;
+  grid-template-rows: var(--bracket-header-height) var(--upper-bracket-height) 20px var(--bracket-header-height) var(--lower-bracket-height);
 }
 
 .inner-column {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-}
-
-.inner-column:not(:last-child) {
-  margin-bottom: 30px;
+  min-width: var(--bracket-gap);
 }
 
 .column-header {
@@ -31,6 +38,7 @@
 }
 
 .grand-final-column {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -41,23 +49,15 @@
 }
 
 .grand-final-column .match {
-  margin: auto 0;
+  position: absolute;
+  /* (40px + ub / 2 + 40px + ub + 20px + 40px + lb / 2) / 2 */
+  top: calc((var(--upper-bracket-height) * 1.5 + var(--bracket-header-height) * 3 + 20px + var(--lower-bracket-height) / 2) / 2);
+  transform: translateY(-50%);
 }
 
 .match {
   outline: 1px solid var(--border-color);
   background: var(--bg-color-lighter);
-}
-
-.match:not(:last-of-type) {
-  margin-bottom: 15px;
-}
-
-.match hr {
-  border: none;
-  height: 1px;
-  background: var(--border-color);
-  margin: 0;
 }
 
 .team-container {
@@ -83,7 +83,7 @@
   height: 100%;
   cursor: pointer;
   appearance: none;
-  background: var(--bg-color-lighter);
+  background: var(--bg-color-light);
   color: inherit;
   text-align: center;
   font-size: 12pt;
@@ -99,4 +99,45 @@
 
 .max-score {
   font-weight: bolder;
+}
+
+.bracket-gap {
+  flex-grow: 2;
+  flex-basis: 0;
+}
+
+.bracket-end-gap {
+  flex-grow: 1;
+  flex-basis: 0;
+}
+
+.bracket-lines {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-grow: 2;
+  flex-basis: 2px;
+}
+
+.bracket-lines>* {
+  flex-basis: 0;
+  flex-grow: 1;
+}
+
+.outgoing-lines {
+  border: 1px solid var(--border-color);
+  border-left: 0;
+  height: 100%;
+}
+
+.grand-final-lines {
+  display: flex;
+  flex-direction: column;
+  width: var(--bracket-gap);
+}
+
+.grand-final-lines .bracket-lines {
+  margin-top: calc(var(--bracket-header-height) + var(--upper-bracket-height) / 2 - 0.5px);
+  margin-bottom: calc(var(--lower-bracket-height) / 2 - 0.5px);
+  flex-grow: 1;
 }

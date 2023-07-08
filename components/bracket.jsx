@@ -2,20 +2,26 @@ import { useState } from 'react';
 import Image from 'next/image';
 import styles from '../styles/DoubleElim.module.css';
 import { DoubleElimBracket } from '../libs/bracket';
+import { range } from 'lodash';
 
 export default function DoubleElim({ teams }) {
   const [bracket, setBracket] = useState(new DoubleElimBracket(teams));
-
   const redrawBracket = () => setBracket({ ...bracket });
 
   return (
     <div className={styles.bracket}>
       <Column upper={bracket.upperR1} lower={bracket.lowerR1} upperTitle='UB Round 1' lowerTitle='LB Round 1' redrawBracket={redrawBracket} />
+      <BracketLinesColumn upperCount={4} lowerCount={4} lowerIsStraight />
       <Column upper={bracket.upperQuarters} lower={bracket.lowerR2} upperTitle='UB Quarterfinals' lowerTitle='LB Round 2' redrawBracket={redrawBracket} />
-      <Column upper={[]} lower={bracket.lowerR3} lowerTitle='LB Round 3' redrawBracket={redrawBracket} />
+      <BracketLinesColumn upperCount={4} lowerCount={2} upperIsStraight />
+      <Column upper={2} lower={bracket.lowerR3} lowerTitle='LB Round 3' redrawBracket={redrawBracket} />
+      <BracketLinesColumn upperCount={2} lowerCount={2} upperIsStraight lowerIsStraight />
       <Column upper={bracket.upperSemis} lower={bracket.lowerQuarters} upperTitle='UB Semifinals' lowerTitle='LB Quarterfinals' redrawBracket={redrawBracket} />
-      <Column upper={[]} lower={[bracket.lowerSemi]} lowerTitle='LB Semifinal' redrawBracket={redrawBracket} />
+      <BracketLinesColumn upperCount={2} lowerCount={1} upperIsStraight />
+      <Column upper={1} lower={[bracket.lowerSemi]} lowerTitle='LB Semifinal' redrawBracket={redrawBracket} />
+      <BracketLinesColumn upperCount={1} lowerCount={1} upperIsStraight lowerIsStraight />
       <Column upper={[bracket.upperFinal]} lower={[bracket.lowerFinal]} upperTitle='UB Final' lowerTitle='LB Final' redrawBracket={redrawBracket} />
+      <div className={styles['grand-final-lines']}><BracketLines /></div>
       <div className={styles['grand-final-column']}>
         <div className={styles['column-header']}>Grand Final</div>
         <Match node={bracket.grandFinal} redrawBracket={redrawBracket} />
@@ -27,21 +33,27 @@ export default function DoubleElim({ teams }) {
 function Column({ upper, lower, upperTitle, lowerTitle, redrawBracket }) {
   return (
     <div className={styles.column}>
-      {upperTitle ?
-        <div className={styles['column-header']}>{upperTitle}</div>
-        :
-        <div></div>
+      {upperTitle
+        ? <div className={styles['column-header']}>{upperTitle}</div>
+        : <div></div>
       }
       <div className={styles['inner-column']}>
-        {upper.map((node, i) => <Match node={node} redrawBracket={redrawBracket} key={i} />)}
+        {typeof (upper) === 'number'
+          ? <InnerBracketLinesColumn count={upper} />
+          : upper.map((node, i) => <Match node={node} redrawBracket={redrawBracket} key={i} />)
+        }
       </div>
-      {lowerTitle ?
-        <div className={styles['column-header']}>{lowerTitle}</div>
-        :
-        <div></div>
+      {/* Gutter between upper and lower bracket */}
+      <div></div>
+      {lowerTitle
+        ? <div className={styles['column-header']}>{lowerTitle}</div>
+        : <div></div>
       }
       <div className={styles['inner-column']}>
-        {lower.map((node, i) => <Match node={node} redrawBracket={redrawBracket} key={i} />)}
+        {typeof (lower) === 'number'
+          ? <InnerBracketLinesColumn count={lower} />
+          : lower.map((node, i) => <Match node={node} redrawBracket={redrawBracket} key={i} />)
+        }
       </div>
     </div>
   );
@@ -107,4 +119,46 @@ function Team({ slot, redrawBracket }) {
       }
     </div>
   );
+}
+
+function BracketLinesColumn({ upperCount, lowerCount, upperIsStraight = false, lowerIsStraight = false }) {
+  return (
+    <div className={styles.column}>
+      {/* Upper title stand in */}
+      <div></div>
+      <div className={styles['inner-column']}>
+        <InnerBracketLinesColumn count={upperCount} isStraight={upperIsStraight} />
+      </div>
+      {/* Gutter between upper and lower bracket */}
+      <div></div>
+      {/* Lower title stand in */}
+      <div></div>
+      <div className={styles['inner-column']}>
+        <InnerBracketLinesColumn count={lowerCount} isStraight={lowerIsStraight} />
+      </div>
+    </div>
+  );
+}
+
+function InnerBracketLinesColumn({ count, isStraight = false }) {
+  return isStraight
+    ? range(count).map((_, i) => <hr key={i} />)
+    : (<>
+      <div className={styles['bracket-end-gap']}></div>
+      {range(count).map((_, i) => (
+        <BracketLines withGap={i < count - 1} key={i} />
+      ))}
+      <div className={styles['bracket-end-gap']}></div>
+    </>);
+}
+
+function BracketLines({ withGap = false }) {
+  return (<>
+    <div className={styles['bracket-lines']}>
+      <div className={styles['outgoing-lines']}>
+      </div>
+      <hr className={styles['ingoing-line']} />
+    </div>
+    {withGap && <div className={styles['bracket-gap']}></div>}
+  </>);
 }

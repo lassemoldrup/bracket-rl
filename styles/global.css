@@ -1,8 +1,9 @@
 :root {
   --main-color: #d6d6d6;
   --main-bg-color: #323232;
+  --bg-color-light: #404040;
   --bg-color-lighter: #505050;
-  --border-color: #a0a0a0;
+  --border-color: #818181;
 }
 
 html,
