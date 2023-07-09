@@ -1,58 +1,86 @@
 import wtf from 'wtf_wikipedia';
-import fs from 'fs/promises';
+import { uniqBy, sortBy, zip, unzip } from 'lodash';
 
 export async function getDoubleElim(event, bracketSection) {
   const APIBaseURL = 'https://liquipedia.net/rocketleague/api.php?'
   const headers = new Headers({
-    'User-Agent': 'BracketRL/1.0 (lasse.moeldrup@gmail.com)',
+    'User-Agent': 'bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)',
     'Accept-Encoding': 'gzip',
   });
-  // const bracketRequestUrl = APIBaseURL + new URLSearchParams({
-  //   'action': 'parse',
-  //   'format': 'json',
-  //   'page': event,
-  //   'prop': 'wikitext|images',
-  //   'section': bracketSection,
-  // });
-  // const rawBracketResponse = await fetch(bracketRequestUrl, {
-  //   headers
-  // });
-
-  // if (!rawBracketResponse.ok) {
-  //   throw 'Failed to get bracket';
-  // }
-
-  // const data = JSON.parse(await rawBracketResponse.text());
-  const data = JSON.parse(await fs.readFile('data.txt', { encoding: 'utf8' }));
-  const imageNames = data.parse.images
-    .filter(im => im.includes('allmode') || im.includes('darkmode'))
-    .map(im => 'File:' + im);
-  const imagesString = imageNames.join('|');
-
-  const imagesRequestURL = APIBaseURL + new URLSearchParams({
-    'action': 'query',
+  const bracketRequestURL = APIBaseURL + new URLSearchParams({
+    'action': 'parse',
     'format': 'json',
-    'prop': 'imageinfo',
-    'titles': imagesString,
+    'page': event,
+    'prop': 'wikitext',
+    'section': bracketSection,
     'formatversion': 2,
-    'iiprop': 'url',
-    'iiurlheight': 50
   });
-  const imagesResponse = await fetch(imagesRequestURL, { headers });
+  const rawBracketResponse = await fetch(bracketRequestURL, {
+    headers
+  });
 
-  if (!imagesResponse.ok) {
-    throw 'Failed to get thumbnails';
+  if (!rawBracketResponse.ok) {
+    throw 'Failed to get bracket';
   }
 
-  const images = [];
-  const imageData = JSON.parse(await imagesResponse.text());
-  for (const im of imageData.query.pages) {
-    images[imageNames.indexOf(im.title.replaceAll(' ', '_'))] = im.imageinfo[0].thumburl;
+  const data = JSON.parse(await rawBracketResponse.text());
+  const section = wtf(data.parse.wikitext, {
+    templateFallbackFn: parseTeamOpponent
+  }).section('Results');
+  const teamKeys = section.templates('teamopponent')
+    .slice(0, 16)
+    .map(t => t.json().key);
+
+  const teamRequestURL = APIBaseURL + new URLSearchParams({
+    'action': 'expandtemplates',
+    'format': 'json',
+    'text': teamKeys.map(t => `{{teamBracket|${t}}}`).join(''),
+    'prop': 'wikitext',
+    'formatversion': 2,
+  });
+  const rawTeamResponse = await fetch(teamRequestURL, {
+    headers
+  });
+
+  if (!rawTeamResponse.ok) {
+    throw 'Failed to get teams';
   }
 
-  const section = wtf(data.parse.wikitext['*']).section('Results');
-  const teams = section.templates('teamopponent')
-    .map((t, i) => ({ team: t.json().list[0], image: images[i] }));
+  const teamData = JSON.parse(await rawTeamResponse.text());
+  const imageList = wtf(teamData.expandtemplates.wikitext).images();
+  const sortedImages = sortBy(imageList, im => im.file().includes('lightmode'));
+  const [teamNames, imageURLs] = unzip(uniqBy(sortedImages, im => im.caption())
+    .map(im => [im.caption(), im.url().replace('wikipedia.org/wiki', 'liquipedia.net/rocketleague')]));
 
-  return teams;
+  const teams = zip(teamNames, imageURLs).map(([name, image]) => ({ name, image }));
+  const matches = section.templates('match').map(m => {
+    const obj = m.json();
+    let score1 = obj.opponent1 && obj.opponent1.split('~')[1];
+    let score2 = obj.opponent2 && obj.opponent2.split('~')[1];
+    // Return a score of 100 if match was forfeit, this will get clamped to the match max
+    return [
+      score1 === 'W' ? 100 : (score1 === 'FF' ? null : parseInt(score1)),
+      score2 === 'W' ? 100 : (score2 === 'FF' ? null : parseInt(score2)),
+    ];
+  });
+
+  return [teams, matches];
+}
+
+function parseTeamOpponent(tmpl, list, parse) {
+  const obj = parse(tmpl);
+
+  if (tmpl.startsWith('{{TeamOpponent')) {
+    const parsed = {
+      key: obj.list[0],
+      // The last bit is a hack, since missing score and 'FF' are treated the same
+      score: obj.score || 'FF',
+      template: 'teamopponent',
+    };
+    list.push(parsed);
+    return `${parsed.key}~${parsed.score}`;
+  }
+
+  list.push(obj);
+  return '[unsupported template]';
 }

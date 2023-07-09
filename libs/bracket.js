@@ -1,4 +1,4 @@
-import { chunk, range } from 'lodash';
+import { chunk, range, zip } from 'lodash';
 
 export class DoubleElimBracket {
   upperR1;
@@ -13,7 +13,7 @@ export class DoubleElimBracket {
   lowerFinal;
   grandFinal = new BracketNode(4, null, null, null, true);
 
-  constructor(upperR1Teams) {
+  constructor(upperR1Teams, matches) {
     this.lowerFinal = new BracketNode(4, this.grandFinal.slots[1]);
     this.lowerSemi = new BracketNode(4, this.lowerFinal.slots[1]);
     this.lowerQuarters = [0, 1].map(i => new BracketNode(4, this.lowerSemi.slots[i]));
@@ -28,6 +28,24 @@ export class DoubleElimBracket {
     this.upperR1 = chunk(upperR1Teams, 2).map((teams, i) =>
       new BracketNode(3, this.upperQuarters[i >> 1].slots[i % 2], this.lowerR1[i >> 1].slots[i % 2], teams)
     );
+
+    const matchOrder = [
+      ...this.upperR1,
+      ...this.lowerR1,
+      ...this.upperQuarters,
+      ...this.lowerR2,
+      ...this.lowerR3,
+      ...this.upperSemis,
+      ...this.lowerQuarters,
+      this.lowerSemi,
+      this.upperFinal,
+      this.lowerFinal,
+      this.grandFinal,
+    ];
+    for (const [node, scores] of zip(matchOrder, matches)) {
+      node.slots[0].score = scores[0];
+      node.slots[1].score = scores[1];
+    }
   }
 }
 

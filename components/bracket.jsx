@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import styles from '../styles/DoubleElim.module.css';
-import { DoubleElimBracket } from '../libs/bracket';
 import { range } from 'lodash';
 
-export default function DoubleElim({ teams }) {
-  const [bracket, setBracket] = useState(new DoubleElimBracket(teams));
+export default function DoubleElim({ initBracket }) {
+  const [bracket, setBracket] = useState({ ...initBracket });
   const redrawBracket = () => setBracket({ ...bracket });
 
   return (
@@ -94,8 +93,9 @@ function Team({ slot, redrawBracket }) {
 
   const scoreClassName = styles.score
     + (slot.score === slot.node.winsNeeded ? ' ' + styles['max-score'] : '');
-
   const bracketResetScoreClassName = styles.score
+    + (slot.hasWon() ? ' ' + styles['max-score'] : '');
+  const teamNameClassName = styles['team-name']
     + (slot.hasWon() ? ' ' + styles['max-score'] : '');
 
   return (
@@ -103,8 +103,8 @@ function Team({ slot, redrawBracket }) {
       <div className={styles.team}>
         {slot.team &&
           <>
-            <Image src={slot.team.image} width={15} height={15} alt={slot.team.team + ' logo'} />
-            <span className={slot.hasWon() ? styles['max-score'] : ''}>{slot.team.team}</span>
+            <Image src={slot.team.image} width={15} height={15} alt={slot.team.name + ' logo'} />
+            <span className={teamNameClassName}>{slot.team.name}</span>
           </>
         }
       </div>
