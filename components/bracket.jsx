@@ -101,9 +101,8 @@ function Team({ slot, redrawBracket }) {
       <div className={styles.team}>
         {slot.team &&
           <>
-            {/* loading='eager', since, otherwise, export doesn't work on Webkit browsers */}
             <div className={styles['team-logo-container']}>
-              <Image src={slot.team.image} width={15} height={15} alt={slot.team.name + ' logo'} loading='eager' />
+              <Image src={slot.team.image} width={15} height={15} alt={slot.team.name + ' logo'} />
             </div>
             <span className={teamNameClassName}>{slot.team.name}</span>
           </>

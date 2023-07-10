@@ -16,6 +16,7 @@ export default function Home({ teams, matches }) {
     const bracketDOMNode = document.getElementsByClassName(bracketStyles.bracket)[0];
     const blob = await toBlob(bracketDOMNode, {
       backgroundColor: styles.mainBgColor,
+      includeQueryParams: true,
     });
     if (window.saveAs)
       window.saveAs(blob, 'bracket.png');
@@ -34,8 +35,7 @@ export default function Home({ teams, matches }) {
         <DoubleElim bracket={bracket} setBracket={setBracket} />
         <div className={styles.controls}>
           <button onClick={captureBracket}>
-            {/* loading='eager', since, otherwise, export doesn't work on Webkit browsers */}
-            <Image src='download-image-icon.svg' width={29} height={30} alt={'Export PNG image.'} loading='eager' />
+            <Image src='download-image-icon.svg' width={29} height={30} alt={'Export PNG image.'} />
           </button>
           <button onClick={() => setBracket(new DoubleElimBracket(teams, []))}>Clear</button>
         </div>
