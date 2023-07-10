@@ -1,0 +1,57 @@
+@import 'vars';
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: fit-content;
+}
+
+.content {
+  position: relative;
+  padding: 20px 20px 0 20px;
+  flex-grow: 1;
+}
+
+.controls {
+  position: fixed;
+  display: flex;
+  bottom: 50px;
+  right: 30px;
+}
+
+.controls button {
+  background: $bg-color-light;
+  color: $main-color;
+  font-size: 12pt;
+  padding: 0.6em 0.8em;
+  appearance: none;
+  cursor: pointer;
+  border: none; // border: 1px solid $border-color;
+  border-radius: 5px;
+  line-height: 1em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.controls button:not(:last-child) {
+  margin-right: 10px;
+}
+
+.controls button:hover,
+.controls button:active {
+  // background: darken($bg-color-lighter, 6%);
+  background: $bg-color-lighter;
+}
+
+.footer {
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+}
+
+:export {
+  mainBgColor: $main-bg-color;
+}

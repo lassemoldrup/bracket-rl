@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import Image from 'next/image';
-import styles from '../styles/DoubleElim.module.css';
+import styles from '../styles/DoubleElim.module.scss';
 import { range } from 'lodash';
 
-export default function DoubleElim({ initBracket }) {
-  const [bracket, setBracket] = useState({ ...initBracket });
+export default function DoubleElim({ bracket, setBracket }) {
   const redrawBracket = () => setBracket({ ...bracket });
 
   return (
@@ -103,7 +101,10 @@ function Team({ slot, redrawBracket }) {
       <div className={styles.team}>
         {slot.team &&
           <>
-            <Image src={slot.team.image} width={15} height={15} alt={slot.team.name + ' logo'} />
+            {/* loading='eager', since, otherwise, export doesn't work on Webkit browsers */}
+            <div className={styles['team-logo-container']}>
+              <Image src={slot.team.image} width={15} height={15} alt={slot.team.name + ' logo'} loading='eager' />
+            </div>
             <span className={teamNameClassName}>{slot.team.name}</span>
           </>
         }

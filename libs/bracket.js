@@ -43,8 +43,17 @@ export class DoubleElimBracket {
       this.grandFinal,
     ];
     for (const [node, scores] of zip(matchOrder, matches)) {
-      node.slots[0].score = scores[0];
-      node.slots[1].score = scores[1];
+      if (!scores) {
+        break;
+      }
+      // If bracket reset
+      if (!node) {
+        this.grandFinal.slots[0].bracketResetScore = scores[0];
+        this.grandFinal.slots[1].bracketResetScore = scores[1];
+      } else {
+        node.slots[0].score = scores[0];
+        node.slots[1].score = scores[1];
+      }
     }
   }
 }

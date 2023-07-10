@@ -1,37 +1,39 @@
+@import 'vars';
+
+$upper-bracket-height: calc(51px * 8 + 15px * 8);
+$lower-bracket-height: calc($upper-bracket-height / 2);
+$bracket-header-height: 40px;
+$bracket-gap: 40px;
+
 .bracket {
   display: flex;
   align-items: stretch;
-  padding: 20px;
   font-size: 10pt;
-  --upper-bracket-height: calc(51px * 8 + 15px * 8);
-  --lower-bracket-height: calc(var(--upper-bracket-height) / 2);
-  --bracket-header-height: 40px;
-  --bracket-gap: 40px;
 }
 
 .bracket hr {
   border: none;
   height: 1px;
-  background: var(--border-color);
+  background: $border-color;
   margin: 0;
 }
 
 .column {
   display: grid;
-  grid-template-rows: var(--bracket-header-height) var(--upper-bracket-height) 20px var(--bracket-header-height) var(--lower-bracket-height);
+  grid-template-rows: $bracket-header-height $upper-bracket-height 20px $bracket-header-height $lower-bracket-height;
 }
 
 .inner-column {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  min-width: var(--bracket-gap);
+  min-width: $bracket-gap;
 }
 
 .column-header {
   width: 200px;
   height: 2rem;
-  background: var(--bg-color-lighter);
+  background: $bg-color-lighter;
   line-height: 1rem;
   text-align: center;
   padding-top: 0.5rem;
@@ -51,13 +53,13 @@
 .grand-final-column .match {
   position: absolute;
   /* (40px + ub / 2 + 40px + ub + 20px + 40px + lb / 2) / 2 */
-  top: calc((var(--upper-bracket-height) * 1.5 + var(--bracket-header-height) * 3 + 20px + var(--lower-bracket-height) / 2) / 2);
+  top: calc(($upper-bracket-height * 1.5 + $bracket-header-height * 3 + 20px + $lower-bracket-height / 2) / 2);
   transform: translateY(-50%);
 }
 
 .match {
-  outline: 1px solid var(--border-color);
-  background: var(--bg-color-lighter);
+  outline: 1px solid $border-color;
+  background: $bg-color-lighter;
 }
 
 .team-container {
@@ -77,19 +79,28 @@
   text-overflow: ellipsis;
 }
 
-.team img {
+.team-logo-container {
   margin: 5px;
+  width: 15px;
+  height: 15px;
+}
+
+.team img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
 }
 
 .score {
   flex-shrink: 0;
   border: 0;
-  border-left: 1px solid var(--border-color);
+  border-left: 1px solid $border-color;
   width: 25px;
   height: 100%;
   cursor: pointer;
   appearance: none;
-  background: var(--bg-color-light);
+  background: $bg-color-light;
   color: inherit;
   text-align: center;
   font-size: 12pt;
@@ -131,7 +142,7 @@
 }
 
 .outgoing-lines {
-  border: 1px solid var(--border-color);
+  border: 1px solid $border-color;
   border-left: 0;
   height: 100%;
 }
@@ -139,11 +150,11 @@
 .grand-final-lines {
   display: flex;
   flex-direction: column;
-  width: var(--bracket-gap);
+  width: $bracket-gap;
 }
 
 .grand-final-lines .bracket-lines {
-  margin-top: calc(var(--bracket-header-height) + var(--upper-bracket-height) / 2 - 0.5px);
-  margin-bottom: calc(var(--lower-bracket-height) / 2 - 0.5px);
+  margin-top: calc($bracket-header-height + $upper-bracket-height / 2 - 0.5px);
+  margin-bottom: calc($lower-bracket-height / 2 - 0.5px);
   flex-grow: 1;
 }

@@ -1,10 +1,4 @@
-:root {
-  --main-color: #d6d6d6;
-  --main-bg-color: #323232;
-  --bg-color-light: #404040;
-  --bg-color-lighter: #505050;
-  --border-color: #818181;
-}
+@import 'vars';
 
 html,
 body {
@@ -12,8 +6,8 @@ body {
   margin: 0;
   font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  color: var(--main-color);
-  background: var(--main-bg-color);
+  color: $main-color;
+  background: $main-bg-color;
 }
 
 a {
