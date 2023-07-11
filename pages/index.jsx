@@ -11,17 +11,33 @@ import FileSaver from 'file-saver';
 
 export default function Home({ teams, matches }) {
   const [bracket, setBracket] = useState(new DoubleElimBracket(teams, matches));
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const captureBracket = async () => {
+    setIsDownloading(true);
     const bracketDOMNode = document.getElementsByClassName(bracketStyles.bracket)[0];
+
+    // Try to fix Safari being weird, see
+    // https://github.com/bubkoo/html-to-image/issues/361
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari)
+      for (let i = 0; i < 2; i++)
+        await toBlob(bracketDOMNode, {
+          backgroundColor: styles.mainBgColor,
+          includeQueryParams: true,
+        });
+
     const blob = await toBlob(bracketDOMNode, {
       backgroundColor: styles.mainBgColor,
       includeQueryParams: true,
     });
+
     if (window.saveAs)
       window.saveAs(blob, 'bracket.png');
     else
       FileSaver.saveAs(blob, 'bracket.png');
+
+    setIsDownloading(false);
   };
 
   return (
@@ -34,17 +50,21 @@ export default function Home({ teams, matches }) {
       <main className={styles.content}>
         <DoubleElim bracket={bracket} setBracket={setBracket} />
         <div className={styles.controls}>
-          <button onClick={captureBracket}>
-            <Image src='download-image-icon.svg' width={29} height={30} alt={'Export PNG image.'} />
+          <button onClick={captureBracket} disabled={isDownloading}
+            style={isDownloading ? { opacity: 0, cursor: "default" } : {}}>
+            <Image src='download-image-icon.svg' width={29} height={30} alt='Export PNG image.' />
           </button>
+          <div className={styles.spinner} style={{ opacity: isDownloading ? 1 : 0 }}>
+            <Image src='wait-loader-icon.svg' width={30} height={30} alt='Downloading image...' />
+          </div>
           <button onClick={() => setBracket(new DoubleElimBracket(teams, []))}>Clear</button>
         </div>
-      </main>
+      </main >
 
       <footer className={styles.footer}>
         Bracket data and images from <a href='https://liquipedia.net/rocketleague'>Liquipedia</a>.
       </footer>
-    </div>
+    </div >
   )
 }
 

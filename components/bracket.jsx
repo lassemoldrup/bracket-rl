@@ -142,10 +142,10 @@ function BracketLinesColumn({ upperCount, lowerCount, upperIsStraight = false, l
 
 function InnerBracketLinesColumn({ count, isStraight = false }) {
   return isStraight
-    ? range(count).map((_, i) => <hr key={i} />)
+    ? range(count).map(i => <hr key={i} />)
     : (<>
       <div className={styles['bracket-end-gap']}></div>
-      {range(count).map((_, i) => (
+      {range(count).map(i => (
         <BracketLines withGap={i < count - 1} key={i} />
       ))}
       <div className={styles['bracket-end-gap']}></div>
