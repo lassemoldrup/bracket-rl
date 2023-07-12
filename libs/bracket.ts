@@ -1,19 +1,19 @@
 import { chunk, range, zip } from 'lodash';
 
 export class DoubleElimBracket {
-  upperR1;
-  upperQuarters;
-  upperSemis;
-  upperFinal;
-  lowerR1;
-  lowerR2;
-  lowerR3;
-  lowerQuarters;
-  lowerSemi;
-  lowerFinal;
-  grandFinal = new BracketNode(4, null, null, null, true);
+  upperR1: BracketNode[];
+  upperQuarters: BracketNode[];
+  upperSemis: BracketNode[];
+  upperFinal: BracketNode;
+  lowerR1: BracketNode[];
+  lowerR2: BracketNode[];
+  lowerR3: BracketNode[];
+  lowerQuarters: BracketNode[];
+  lowerSemi: BracketNode;
+  lowerFinal: BracketNode;
+  grandFinal: BracketNode = new BracketNode(4, null, null, null, true);
 
-  constructor(upperR1Teams, matches) {
+  constructor({ teams, matchScores }: FormatInitializer) {
     this.lowerFinal = new BracketNode(4, this.grandFinal.slots[1]);
     this.lowerSemi = new BracketNode(4, this.lowerFinal.slots[1]);
     this.lowerQuarters = [0, 1].map(i => new BracketNode(4, this.lowerSemi.slots[i]));
@@ -21,12 +21,19 @@ export class DoubleElimBracket {
     this.lowerR2 = [0, 1].flatMap(i => [0, 1].map(j => new BracketNode(3, this.lowerR3[i].slots[j])));
     this.lowerR1 = range(4).map(i => new BracketNode(3, this.lowerR2[i].slots[1]));
     this.upperFinal = new BracketNode(4, this.grandFinal.slots[0], this.lowerFinal.slots[0]);
-    this.upperSemis = [0, 1].map(i => new BracketNode(4, this.upperFinal.slots[i], this.lowerQuarters[i].slots[0]));
+    this.upperSemis = [0, 1].map(i =>
+      new BracketNode(4, this.upperFinal.slots[i], this.lowerQuarters[i].slots[0])
+    );
     this.upperQuarters = range(4).map(i =>
       new BracketNode(3, this.upperSemis[i >> 1].slots[i % 2], this.lowerR2[3 - i].slots[0])
     );
-    this.upperR1 = chunk(upperR1Teams, 2).map((teams, i) =>
-      new BracketNode(3, this.upperQuarters[i >> 1].slots[i % 2], this.lowerR1[i >> 1].slots[i % 2], teams)
+    this.upperR1 = chunk(teams, 2).map((teams, i) =>
+      new BracketNode(
+        3,
+        this.upperQuarters[i >> 1].slots[i % 2],
+        this.lowerR1[i >> 1].slots[i % 2],
+        teams as [Team, Team]
+      )
     );
 
     const matchOrder = [
@@ -42,7 +49,7 @@ export class DoubleElimBracket {
       this.lowerFinal,
       this.grandFinal,
     ];
-    for (const [node, scores] of zip(matchOrder, matches)) {
+    for (const [node, scores] of zip(matchOrder, matchScores)) {
       if (!scores) {
         break;
       }
@@ -59,13 +66,19 @@ export class DoubleElimBracket {
 }
 
 export class BracketNode {
-  winSlot;
-  lossSlot;
-  winsNeeded;
-  bracketReset;
-  slots = [new TeamSlot(this), new TeamSlot(this)];
+  winsNeeded: number;
+  winSlot: TeamSlot | null;
+  lossSlot: TeamSlot | null;
+  bracketReset: boolean;
+  slots: [TeamSlot, TeamSlot] = [new TeamSlot(this), new TeamSlot(this)];
 
-  constructor(winsNeeded, winSlot = null, lossSlot = null, teams = null, bracketReset = false) {
+  constructor(
+    winsNeeded: number,
+    winSlot: TeamSlot | null = null,
+    lossSlot: TeamSlot | null = null,
+    teams: [Team, Team] | null = null,
+    bracketReset: boolean = false
+  ) {
     this.winsNeeded = winsNeeded;
     this.winSlot = winSlot;
     this.lossSlot = lossSlot;
@@ -74,7 +87,7 @@ export class BracketNode {
     this.bracketReset = bracketReset;
   }
 
-  getOther(slot) {
+  getOther(slot: TeamSlot): TeamSlot {
     if (this.slots[0] === slot) {
       return this.slots[1];
     } else {
@@ -84,20 +97,20 @@ export class BracketNode {
 }
 
 export class TeamSlot {
-  node;
-  #team = null;
-  #score = null;
-  #bracketResetScore = null;
+  node: BracketNode;
+  #team: Team | null = null;
+  #score: number | null = null;
+  #bracketResetScore: number | null = null;
 
-  constructor(node) {
+  constructor(node: BracketNode) {
     this.node = node;
   }
 
-  get team() {
+  get team(): Team | null {
     return this.#team;
   }
 
-  set team(value) {
+  set team(value: Team | null) {
     this.#team = value;
     if (this.score === this.node.winsNeeded && this.node.winSlot)
       this.node.winSlot.team = value;
@@ -105,11 +118,11 @@ export class TeamSlot {
       this.node.lossSlot.team = value;
   }
 
-  get score() {
+  get score(): number | null {
     return this.#score;
   }
 
-  set score(value) {
+  set score(value: number | null) {
     if (value !== null) {
       value = Math.min(value, this.node.winsNeeded);
       value = Math.max(value, 0);
@@ -138,11 +151,11 @@ export class TeamSlot {
     this.#score = value;
   }
 
-  get bracketResetScore() {
+  get bracketResetScore(): number | null {
     return this.#bracketResetScore;
   }
 
-  set bracketResetScore(value) {
+  set bracketResetScore(value: number | null) {
     if (value !== null) {
       value = Math.min(value, this.node.winsNeeded);
       value = Math.max(value, 0);
@@ -155,7 +168,7 @@ export class TeamSlot {
     this.#bracketResetScore = value;
   }
 
-  hasWon() {
+  hasWon(): boolean {
     if (this.node.bracketReset && this.node.slots[1].score === this.node.winsNeeded)
       return this.#bracketResetScore === this.node.winsNeeded;
     return this.#score === this.node.winsNeeded;

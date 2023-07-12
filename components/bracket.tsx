@@ -1,8 +1,19 @@
 import Image from 'next/image';
 import styles from '../styles/DoubleElim.module.scss';
 import { range } from 'lodash';
+import { BracketNode, DoubleElimBracket, TeamSlot } from '../libs/bracket';
+import { ChangeEvent } from 'react';
 
-export default function DoubleElim({ bracket, setBracket }) {
+interface BracketProps {
+  redrawBracket(): void,
+}
+
+interface DoubleElimProps {
+  bracket: DoubleElimBracket,
+  setBracket(bracket: DoubleElimBracket): void,
+}
+
+export default function DoubleElim({ bracket, setBracket }: DoubleElimProps) {
   const redrawBracket = () => setBracket({ ...bracket });
 
   return (
@@ -27,7 +38,14 @@ export default function DoubleElim({ bracket, setBracket }) {
   );
 }
 
-function Column({ upper, lower, upperTitle, lowerTitle, redrawBracket }) {
+interface ColumnProps extends BracketProps {
+  upper: BracketNode[] | number,
+  lower: BracketNode[] | number,
+  upperTitle?: string,
+  lowerTitle?: string,
+}
+
+function Column({ upper, lower, upperTitle, lowerTitle, redrawBracket }: ColumnProps) {
   return (
     <div className={styles.column}>
       {upperTitle
@@ -56,7 +74,11 @@ function Column({ upper, lower, upperTitle, lowerTitle, redrawBracket }) {
   );
 }
 
-function Match({ node, redrawBracket }) {
+interface MatchProps extends BracketProps {
+  node: BracketNode,
+}
+
+function Match({ node, redrawBracket }: MatchProps) {
   return (
     <div className={styles.match}>
       <Team slot={node.slots[0]} redrawBracket={redrawBracket} />
@@ -66,9 +88,13 @@ function Match({ node, redrawBracket }) {
   );
 }
 
-function Team({ slot, redrawBracket }) {
-  const setScore = event => {
-    const score = parseInt(event.target.value);
+interface TeamProps extends BracketProps {
+  slot: TeamSlot,
+}
+
+function Team({ slot, redrawBracket }: TeamProps) {
+  const setScore = (event: ChangeEvent) => {
+    const score = parseInt((event.target as HTMLInputElement).value);
     // if (score is NaN)
     if (score !== score) {
       slot.score = null;
@@ -78,8 +104,8 @@ function Team({ slot, redrawBracket }) {
     redrawBracket();
   };
 
-  const setBracketResetScore = event => {
-    const score = parseInt(event.target.value);
+  const setBracketResetScore = (event: ChangeEvent) => {
+    const score = parseInt((event.target as HTMLInputElement).value);
     // if (score is NaN)
     if (score !== score) {
       slot.bracketResetScore = null;
@@ -121,7 +147,14 @@ function Team({ slot, redrawBracket }) {
   );
 }
 
-function BracketLinesColumn({ upperCount, lowerCount, upperIsStraight = false, lowerIsStraight = false }) {
+interface BracketLinesColumnProps {
+  upperCount: number,
+  lowerCount: number,
+  upperIsStraight?: boolean,
+  lowerIsStraight?: boolean,
+}
+
+function BracketLinesColumn({ upperCount, lowerCount, upperIsStraight, lowerIsStraight }: BracketLinesColumnProps) {
   return (
     <div className={styles.column}>
       {/* Upper title stand in */}
@@ -140,7 +173,12 @@ function BracketLinesColumn({ upperCount, lowerCount, upperIsStraight = false, l
   );
 }
 
-function InnerBracketLinesColumn({ count, isStraight = false }) {
+interface InnerBracketLinesColumnProps {
+  count: number,
+  isStraight?: boolean,
+}
+
+function InnerBracketLinesColumn({ count, isStraight = false }: InnerBracketLinesColumnProps) {
   return isStraight
     ? range(count).map(i => <hr key={i} />)
     : (<>
@@ -152,7 +190,11 @@ function InnerBracketLinesColumn({ count, isStraight = false }) {
     </>);
 }
 
-function BracketLines({ withGap = false }) {
+interface BracketLinesProps {
+  withGap?: boolean,
+}
+
+function BracketLines({ withGap = false }: BracketLinesProps) {
   return (<>
     <div className={styles['bracket-lines']}>
       <div className={styles['outgoing-lines']}>

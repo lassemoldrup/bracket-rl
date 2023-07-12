@@ -40,12 +40,16 @@
   align-items: center;
 }
 
+.controls button:disabled {
+  cursor: default;
+}
+
 .controls button:not(:last-child) {
   margin-right: 10px;
 }
 
-.controls button:hover,
-.controls button:active {
+.controls button:not(:disabled):hover,
+.controls button:not(:disabled):active {
   background: $bg-color-lighter;
 }
 

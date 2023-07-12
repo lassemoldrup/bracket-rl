@@ -9,13 +9,13 @@ import { useState } from 'react';
 import { toBlob } from 'html-to-image';
 import FileSaver from 'file-saver';
 
-export default function Home({ teams, matches }) {
-  const [bracket, setBracket] = useState(new DoubleElimBracket(teams, matches));
+export default function Home(init: FormatInitializer) {
+  const [bracket, setBracket] = useState(new DoubleElimBracket(init));
   const [isDownloading, setIsDownloading] = useState(false);
 
   const captureBracket = async () => {
     setIsDownloading(true);
-    const bracketDOMNode = document.getElementsByClassName(bracketStyles.bracket)[0];
+    const bracketDOMNode = document.getElementsByClassName(bracketStyles.bracket)[0] as HTMLDivElement;
 
     // Try to fix Safari being weird, see
     // https://github.com/bubkoo/html-to-image/issues/361
@@ -31,14 +31,13 @@ export default function Home({ teams, matches }) {
       backgroundColor: styles.mainBgColor,
       includeQueryParams: true,
     });
-
-    if (window.saveAs)
-      window.saveAs(blob, 'bracket.png');
-    else
+    if (blob)
       FileSaver.saveAs(blob, 'bracket.png');
 
     setIsDownloading(false);
   };
+
+  const clearBracket = () => setBracket(new DoubleElimBracket({ ...init, matchScores: [] }));
 
   return (
     <div className={styles.container}>
@@ -51,13 +50,13 @@ export default function Home({ teams, matches }) {
         <DoubleElim bracket={bracket} setBracket={setBracket} />
         <div className={styles.controls}>
           <button onClick={captureBracket} disabled={isDownloading}
-            style={isDownloading ? { opacity: 0, cursor: "default" } : {}}>
+            style={{ opacity: isDownloading ? 0 : 1, }}>
             <Image src='download-image-icon.svg' width={29} height={30} alt='Export PNG image.' />
           </button>
           <div className={styles.spinner} style={{ opacity: isDownloading ? 1 : 0 }}>
             <Image src='wait-loader-icon.svg' width={30} height={30} alt='Downloading image...' />
           </div>
-          <button onClick={() => setBracket(new DoubleElimBracket(teams, []))}>Clear</button>
+          <button onClick={clearBracket} disabled={isDownloading}>Clear</button>
         </div>
       </main >
 
@@ -75,11 +74,8 @@ export async function getStaticProps() {
   const bracketSection = 13;
   // const bracketSection = 9;
   // const bracketSection = 11;
-  const [teams, matches] = await getDoubleElim(event, bracketSection);
+  const init = await getDoubleElim(event, bracketSection);
   return {
-    props: {
-      teams,
-      matches,
-    },
+    props: init,
   };
 }
