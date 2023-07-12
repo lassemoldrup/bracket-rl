@@ -4,12 +4,6 @@ import { uniqBy, sortBy, zip, unzip } from 'lodash';
 const bracketRLVersion = '1.0';
 const userAgent = `bracket-rl/${bracketRLVersion} (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
 
-interface Template {
-  json(): object
-  text(): string
-  wikitext(): string
-}
-
 interface TeamOpponent {
   key: string,
   score: number | null,
@@ -20,11 +14,20 @@ interface Match {
   opponent2: TeamOpponent,
 }
 
+// Types from wtf_wikipedia
+type WTFDocument = ReturnType<typeof wtf>;
+type WTFSection = Exclude<ReturnType<WTFDocument['section']>, null>;
+interface WTFTemplate {
+  json(): object
+  text(): string
+  wikitext(): string
+}
+
 export async function getDoubleElim(event: string): Promise<FormatInitializer> {
   const section = await getResultsSection(event);
   const teams = await getTeams(section, 16);
 
-  const matchScores = (section.templates('match') as Template[]).map(m => {
+  const matchScores = (section.templates('match') as WTFTemplate[]).map(m => {
     const match = m.json() as Match;
     return [
       match.opponent1.score,
@@ -38,8 +41,6 @@ export async function getDoubleElim(event: string): Promise<FormatInitializer> {
   };
 }
 
-type WTFDocument = ReturnType<typeof wtf>;
-type WTFSection = Exclude<ReturnType<WTFDocument['section']>, null>;
 async function getResultsSection(event: string): Promise<WTFSection> {
   const doc = await wtf.extend(extendTemplates).fetch(event, {
     domain: 'liquipedia.net/rocketleague',
@@ -85,7 +86,7 @@ function extendTemplates(_models: any, templates: any): void {
 }
 
 async function getTeams(section: WTFSection, numTeams: number): Promise<Team[]> {
-  const teamKeys = (section.templates('teamopponent') as Template[])
+  const teamKeys = (section.templates('teamopponent') as WTFTemplate[])
     .slice(0, numTeams)
     .map(t => (t.json() as TeamOpponent).key);
 
