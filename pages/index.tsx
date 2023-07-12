@@ -71,10 +71,7 @@ export async function getStaticProps() {
   const event = 'Rocket_League_Championship_Series/2022-23/Spring';
   // const event = 'Rocket_League_Championship_Series/2022-23/Spring/Asia-Pacific/Open'
   // const event = 'Rocket_League_Championship_Series/2022-23/Spring/Europe/Cup';
-  const bracketSection = 13;
-  // const bracketSection = 9;
-  // const bracketSection = 11;
-  const init = await getDoubleElim(event, bracketSection);
+  const init = await getDoubleElim(event);
   return {
     props: init,
   };

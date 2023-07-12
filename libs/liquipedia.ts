@@ -1,91 +1,34 @@
 import wtf from 'wtf_wikipedia';
 import { uniqBy, sortBy, zip, unzip } from 'lodash';
 
+const bracketRLVersion = '1.0';
+const userAgent = `bracket-rl/${bracketRLVersion} (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
+
 interface Template {
   json(): object
   text(): string
   wikitext(): string
 }
 
-interface TeamOpponentTempl {
+interface TeamOpponent {
   key: string,
-  score: string,
-  template: 'teamopponent',
+  score: number | null,
 }
 
-interface MatchTempl {
-  opponent1: string,
-  opponent2: string,
-  template: 'match',
+interface Match {
+  opponent1: TeamOpponent,
+  opponent2: TeamOpponent,
 }
 
-export async function getDoubleElim(event: string, bracketSection: number): Promise<FormatInitializer> {
-  const APIBaseURL = 'https://liquipedia.net/rocketleague/api.php?'
-  const headers = new Headers({
-    'User-Agent': 'bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)',
-    'Accept-Encoding': 'gzip',
-  });
-  const bracketRequestURL = APIBaseURL + new URLSearchParams({
-    'action': 'parse',
-    'format': 'json',
-    'page': event,
-    'prop': 'wikitext',
-    'section': bracketSection.toString(),
-    'formatversion': '2',
-  });
-  const rawBracketResponse = await fetch(bracketRequestURL, {
-    headers
-  });
+export async function getDoubleElim(event: string): Promise<FormatInitializer> {
+  const section = await getResultsSection(event);
+  const teams = await getTeams(section, 16);
 
-  if (!rawBracketResponse.ok) {
-    throw 'Failed to get bracket';
-  }
-
-  const data = JSON.parse(await rawBracketResponse.text());
-  const section = wtf(data.parse.wikitext, {
-    templateFallbackFn: parseTeamOpponent
-  }).section('Results');
-  if (!section)
-    throw 'Unable to get Results section';
-
-  const teamKeys = (section.templates('teamopponent') as Template[])
-    .slice(0, 16)
-    .map(t => (t.json() as TeamOpponentTempl).key);
-
-  const teamRequestURL = APIBaseURL + new URLSearchParams({
-    'action': 'expandtemplates',
-    'format': 'json',
-    'text': teamKeys.map(t => `{{teamBracket|${t}}}`).join(''),
-    'prop': 'wikitext',
-    'formatversion': '2',
-  });
-  const rawTeamResponse = await fetch(teamRequestURL, {
-    headers
-  });
-
-  if (!rawTeamResponse.ok)
-    throw 'Failed to get teams';
-
-  const teamData = JSON.parse(await rawTeamResponse.text());
-  const imageList = wtf(teamData.expandtemplates.wikitext).images();
-  const sortedImages = sortBy(imageList, im => im.file().includes('lightmode'));
-  const [teamNames, imageURLs] = unzip(uniqBy(sortedImages, im => im.caption())
-    .map(im => [im.caption(), im.url().replace('wikipedia.org/wiki', 'liquipedia.net/rocketleague')]));
-  if (teamNames.length !== imageURLs.length)
-    throw 'Mismatch between teamNames and imageURLs';
-
-  const teams = zip(teamNames, imageURLs).map(([name, image]) => ({
-    name: name as string,
-    image: image as string,
-  }));
   const matchScores = (section.templates('match') as Template[]).map(m => {
-    const obj = m.json() as MatchTempl;
-    let score1 = obj.opponent1 && obj.opponent1.split('~')[1];
-    let score2 = obj.opponent2 && obj.opponent2.split('~')[1];
-    // Return a score of 100 if match was forfeit, this will get clamped to the match max
+    const match = m.json() as Match;
     return [
-      score1 === 'W' ? 100 : (score1 === 'FF' ? null : parseInt(score1)),
-      score2 === 'W' ? 100 : (score2 === 'FF' ? null : parseInt(score2)),
+      match.opponent1.score,
+      match.opponent2.score,
     ] as MatchScore;
   });
 
@@ -95,20 +38,93 @@ export async function getDoubleElim(event: string, bracketSection: number): Prom
   };
 }
 
-function parseTeamOpponent(tmpl: string, list: object[], parse: (tmpl: string) => object) {
-  const obj = parse(tmpl) as any;
+type WTFDocument = ReturnType<typeof wtf>;
+type WTFSection = Exclude<ReturnType<WTFDocument['section']>, null>;
+async function getResultsSection(event: string): Promise<WTFSection> {
+  const doc = await wtf.extend(extendTemplates).fetch(event, {
+    domain: 'liquipedia.net/rocketleague',
+    'Api-User-Agent': userAgent,
+  });
+  if (!doc)
+    throw 'Failed to get event';
 
-  if (tmpl.startsWith('{{TeamOpponent')) {
+  const section = (doc as WTFDocument).section('Results');
+  if (!section)
+    throw 'Failed to get Results section';
+
+  return section;
+}
+
+function extendTemplates(_models: any, templates: any): void {
+  templates.teamopponent = (tmpl: string, list: object[], parse: (tmpl: string) => any) => {
+    const obj = parse(tmpl);
+    // Return a score of 100 if match was forfeit, this will get clamped to the match max
+    let score: number | null = obj.score === 'W' ? 100 : parseInt(obj.score);
+    // if score is NaN
+    if (score !== score)
+      score = null;
     const parsed = {
       key: obj.list[0],
-      // The last bit is a hack, since missing score and 'FF' are treated the same
-      score: obj.score || 'FF',
+      score,
       template: 'teamopponent',
     };
     list.push(parsed);
-    return `${parsed.key}~${parsed.score}`;
+    return JSON.stringify(parsed);
+  };
+
+  templates.match = (tmpl: string, list: object[], parse: (tmpl: string) => any) => {
+    let obj = parse(tmpl);
+    const parsed = {
+      opponent1: JSON.parse(obj.opponent1),
+      opponent2: JSON.parse(obj.opponent2),
+      template: 'match',
+    }
+    list.push(parsed);
+    return JSON.stringify(parsed);
+  }
+}
+
+async function getTeams(section: WTFSection, numTeams: number): Promise<Team[]> {
+  const teamKeys = (section.templates('teamopponent') as Template[])
+    .slice(0, numTeams)
+    .map(t => (t.json() as TeamOpponent).key);
+
+  // Get team images and names
+  const APIBaseURL = 'https://liquipedia.net/rocketleague/api.php?'
+  const teamRequestURL = APIBaseURL + new URLSearchParams({
+    'action': 'expandtemplates',
+    'format': 'json',
+    'text': teamKeys.map(t => `{{teamBracket|${t}}}`).join(''),
+    'prop': 'wikitext',
+    'formatversion': '2',
+  });
+  const headers = new Headers({
+    'User-Agent': userAgent,
+    'Api-User-Agent': userAgent,
+    'Accept-Encoding': 'gzip',
+  });
+  const rawTeamResponse = await fetch(teamRequestURL, { headers });
+  if (!rawTeamResponse.ok)
+    throw `Failed to get teams: status code ${rawTeamResponse.status}.`;
+
+  const teamData = JSON.parse(await rawTeamResponse.text());
+  if (teamData.error) {
+    if (teamData.error.info)
+      throw 'Failed to get teams: ' + teamData.error.info;
+    else
+      throw 'Failed to get teams.';
   }
 
-  list.push(obj);
-  return '[unsupported template]';
+  const imageList = wtf(teamData.expandtemplates.wikitext).images();
+  // Deprioritizes images that have lightmode in the name
+  const sortedImages = sortBy(imageList, im => im.file().includes('lightmode'));
+  const [teamNames, imageURLs] = unzip(uniqBy(sortedImages, im => im.caption())
+    .map(im => [im.caption(), im.url().replace('wikipedia.org/wiki', 'liquipedia.net/rocketleague')]));
+  if (teamNames.length !== imageURLs.length)
+    throw 'Mismatch between teamNames and imageURLs';
+
+  return zip(teamNames, imageURLs).map(([name, image]) => ({
+    name: name as string,
+    image: image as string,
+  }));
 }
