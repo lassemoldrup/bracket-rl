@@ -2,11 +2,11 @@
 
 .container {
   min-height: 100vh;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-width: fit-content;
+  min-width: 100vw;
 }
 
 .content {
@@ -16,9 +16,14 @@
 }
 
 .controls {
-  position: fixed;
-  display: flex;
-  bottom: 50px;
+  position: sticky;
+  display: inline-flex;
+  padding: 10px;
+  background: $main-bg-color;
+  border-radius: 5px;
+  bottom: 5px;
+  left: 5px;
+  margin-left: -1px;
 }
 
 .controls button {
