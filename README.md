@@ -14,3 +14,4 @@ The below list is a non-exhaustive list over features that need to be implemente
 * "Live" updates: There should be a backend service that pulls updated standings for ongoing events every minute.
 * QOL improvements.
 * Support for multiple events, e.g. regionals for all regions.
+* Better mobile UI.
