@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { toBlob } from 'html-to-image';
 import FileSaver from 'file-saver';
 
-export default function Home(init: FormatInitializer) {
+export default function Home(init: BracketInitializer) {
   const [bracket, setBracket] = useState(new DoubleElimBracket(init));
   const [isDownloading, setIsDownloading] = useState(false);
 

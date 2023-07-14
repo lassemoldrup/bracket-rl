@@ -1,5 +1,5 @@
 import wtf from 'wtf_wikipedia';
-import { uniqBy, sortBy, zip, unzip } from 'lodash';
+import _ from 'lodash';
 
 const bracketRLVersion = '1.0';
 const userAgent = `bracket-rl/${bracketRLVersion} (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
@@ -23,9 +23,10 @@ interface WTFTemplate {
   wikitext(): string
 }
 
-export async function getDoubleElim(event: string): Promise<FormatInitializer> {
+export async function getDoubleElim(event: string): Promise<BracketInitializer> {
   const section = await getResultsSection(event);
-  const teams = await getTeams(section, 16);
+  const teams = await getFirstNTeams(section, 16);
+  const matchups = _.chunk(teams, 2) as Matchup[];
 
   const matchScores = (section.templates('match') as WTFTemplate[]).map(m => {
     const match = m.json() as Match;
@@ -36,7 +37,7 @@ export async function getDoubleElim(event: string): Promise<FormatInitializer> {
   });
 
   return {
-    teams,
+    matchups,
     matchScores
   };
 }
@@ -85,9 +86,9 @@ function extendTemplates(_models: any, templates: any): void {
   }
 }
 
-async function getTeams(section: WTFSection, numTeams: number): Promise<Team[]> {
+async function getFirstNTeams(section: WTFSection, n: number): Promise<Team[]> {
   const teamKeys = (section.templates('teamopponent') as WTFTemplate[])
-    .slice(0, numTeams)
+    .slice(0, n)
     .map(t => (t.json() as TeamOpponent).key);
 
   // Get team images and names
@@ -118,13 +119,18 @@ async function getTeams(section: WTFSection, numTeams: number): Promise<Team[]> 
 
   const imageList = wtf(teamData.expandtemplates.wikitext).images();
   // Deprioritizes images that have lightmode in the name
-  const sortedImages = sortBy(imageList, im => im.file().includes('lightmode'));
-  const [teamNames, imageURLs] = unzip(uniqBy(sortedImages, im => im.caption())
-    .map(im => [im.caption(), im.url().replace('wikipedia.org/wiki', 'liquipedia.net/rocketleague')]));
+  const sortedImages = _.sortBy(imageList, im => im.file().includes('lightmode'));
+  const [teamNames, imageURLs] = _.unzip(
+    _.uniqBy(sortedImages, im => im.caption())
+      .map(im => [
+        im.caption(),
+        im.url().replace('wikipedia.org/wiki', 'liquipedia.net/rocketleague'),
+      ])
+  );
   if (teamNames.length !== imageURLs.length)
     throw 'Mismatch between teamNames and imageURLs';
 
-  return zip(teamNames, imageURLs).map(([name, image]) => ({
+  return _.zip(teamNames, imageURLs).map(([name, image]) => ({
     name: name as string,
     image: image as string,
   }));

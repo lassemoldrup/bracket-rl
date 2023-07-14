@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import styles from '../styles/DoubleElim.module.scss';
 import { range } from 'lodash';
-import { BracketNode, DoubleElimBracket, TeamSlot } from '../libs/bracket';
+import { BracketNode, DoubleElimBracket, BracketSlot } from '../libs/bracket';
 import { ChangeEvent } from 'react';
 
 interface BracketProps {
@@ -89,7 +89,7 @@ function Match({ node, redrawBracket }: MatchProps) {
 }
 
 interface TeamProps extends BracketProps {
-  slot: TeamSlot,
+  slot: BracketSlot,
 }
 
 function Team({ slot, redrawBracket }: TeamProps) {
