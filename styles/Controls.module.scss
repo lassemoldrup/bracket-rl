@@ -1,19 +1,4 @@
-@import 'vars';
-
-.container {
-  min-height: 100vh;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-width: 100vw;
-}
-
-.content {
-  position: relative;
-  padding: 20px 20px 0 20px;
-  flex-grow: 1;
-}
+@use 'vars' as *;
 
 .controls {
   position: sticky;
@@ -75,12 +60,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.footer {
-  width: 100%;
-  padding: 1rem;
-  text-align: center;
 }
 
 :export {

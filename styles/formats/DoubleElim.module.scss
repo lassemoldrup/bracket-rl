@@ -1,0 +1,48 @@
+@use '../vars' as *;
+@use 'Bracket.module' as bracket;
+
+$match-height: 2 * bracket.$team-height + 1px;
+$upper-bracket-height: $match-height * 8 + 15px * 8;
+$lower-bracket-height: $upper-bracket-height / 2;
+
+.double-elim {
+  display: flex;
+  align-items: stretch;
+  font-size: 10pt;
+}
+
+.double-elim hr {
+  border: none;
+  height: 1px;
+  background: $border-color;
+  margin: 0;
+}
+
+.double-elim-column {
+  min-width: bracket.$horizontal-gap;
+  display: grid;
+  grid-template-rows: bracket.$header-height $upper-bracket-height 20px bracket.$header-height $lower-bracket-height;
+}
+
+.grand-final-column {
+  width: bracket.$match-width + bracket.$team-height;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.grand-final-match {
+  position: absolute;
+  /* (40px + ub / 2 + 40px + ub + 20px + 40px + lb / 2) / 2 */
+  top: ($upper-bracket-height * 1.5 + bracket.$header-height * 3 + 20px + $lower-bracket-height / 2) / 2;
+  transform: translateY(-50%);
+}
+
+.grand-final-lines {
+  display: flex;
+  flex-direction: column;
+  width: bracket.$horizontal-gap;
+  margin-top: bracket.$header-height + $upper-bracket-height / 2 - 0.5px;
+  margin-bottom: $lower-bracket-height / 2 - 0.5px;
+}

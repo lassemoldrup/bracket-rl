@@ -1,5 +1,6 @@
 import { Swiss } from './swiss';
 import _ from 'lodash';
+import { Team, MatchScore, FormatKind } from './types';
 
 function namesToMatchups(teams: Team[], ...names: [string, string][]): [number, number][] {
   return names.map(m => m.map(n => teams.map(t => t.name).indexOf(n)) as [number, number]);
@@ -16,7 +17,7 @@ test('getMatchupsForMatchList correct for second round matchups Worlds Wildcard 
     ['SSG', 'CLUB'], ['KC', '01'], ['KCP', 'VEL'], ['TS', 'SMPR'], ['SEN', 'OG']);
   const matchScores: MatchScore[] = [[4, 0], [4, 0], [4, 0], [4, 2], [4, 1], [4, 0], [0, 4], [0, 4]];
   const winsNeeded = 4;
-  const swiss = new Swiss({ teams, matchups, matchScores, winsNeeded });
+  const swiss = new Swiss({ kind: FormatKind.Swiss, teams, matchups, matchScores, winsNeeded });
   const r2High = swiss.getMatchupsForMatchList(1, 0);
   const r2Low = swiss.getMatchupsForMatchList(1, 1);
 

@@ -1,5 +1,7 @@
 import wtf from 'wtf_wikipedia';
 import _ from 'lodash';
+import { cache } from 'react';
+import { BracketInitializer, Matchup, MatchScore, FormatKind, Team } from './types';
 
 const bracketRLVersion = '1.0';
 const userAgent = `bracket-rl/${bracketRLVersion} (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
@@ -23,7 +25,7 @@ interface WTFTemplate {
   wikitext(): string
 }
 
-export async function getDoubleElim(event: string): Promise<BracketInitializer> {
+export const getDoubleElim = cache(async (event: string): Promise<BracketInitializer> => {
   const section = await getResultsSection(event);
   const teams = await getFirstNTeams(section, 16);
   const matchups = _.chunk(teams, 2) as Matchup[];
@@ -36,11 +38,8 @@ export async function getDoubleElim(event: string): Promise<BracketInitializer> 
     ] as MatchScore;
   });
 
-  return {
-    matchups,
-    matchScores
-  };
-}
+  return { kind: FormatKind.DoubleElim, matchups, matchScores };
+});
 
 async function getResultsSection(event: string): Promise<WTFSection> {
   const doc = await wtf.extend(extendTemplates).fetch(event, {

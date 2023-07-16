@@ -1,5 +1,6 @@
 import assert from "assert";
 import _ from "lodash";
+import { Team, SwissInitializer, Matchup, WinLossRecord } from "./types";
 
 export class Swiss {
   initialSeeding: Team[];

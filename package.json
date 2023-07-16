@@ -7,12 +7,15 @@
     "test": "jest"
   },
   "dependencies": {
+    "classnames": "^2.3.2",
+    "encoding": "^0.1.13",
     "file-saver": "^2.0.5",
     "html-to-image": "^1.11.11",
     "lodash": "^4.17.21",
     "next": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "server-only": "^0.0.1",
     "wtf_wikipedia": "^10.1.5"
   },
   "devDependencies": {
