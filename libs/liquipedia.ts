@@ -1,37 +1,45 @@
 import wtf from 'wtf_wikipedia';
 import _ from 'lodash';
 import { cache } from 'react';
-import { BracketInitializer, Matchup, MatchScore, FormatKind, Team } from './types';
+import fs from 'fs/promises';
+import { BracketInitializer, Matchup, MatchScore, FormatKind, Team, SwissInitializer } from './types';
 
-const bracketRLVersion = '1.0';
-const userAgent = `bracket-rl/${bracketRLVersion} (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
+const userAgent = `bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
 
+const TEAM_OPPONENT = 'teamopponent';
 interface TeamOpponent {
   key: string,
   score: number | null,
 }
 
+const MATCH = 'match';
 interface Match {
   opponent1: TeamOpponent,
   opponent2: TeamOpponent,
 }
 
+type EventOverrides = { [event: string]: EventOverride };
+interface EventOverride {
+  seeding?: string[],
+}
+
 // Types from wtf_wikipedia
 type WTFDocument = ReturnType<typeof wtf>;
 type WTFSection = Exclude<ReturnType<WTFDocument['section']>, null>;
-interface WTFTemplate {
-  json(): object
+interface WTFTemplate<T> {
+  json(): T
   text(): string
   wikitext(): string
 }
 
 export const getDoubleElim = cache(async (event: string): Promise<BracketInitializer> => {
-  const section = await getResultsSection(event);
-  const teams = await getFirstNTeams(section, 16);
+  const section = await getSection(event, 'Results');
+  const teamKeys = getFirstNTeams(section, 16);
+  const teams = await getTeamsFromKeys(teamKeys);
   const matchups = _.chunk(teams, 2) as Matchup[];
 
-  const matchScores = (section.templates('match') as WTFTemplate[]).map(m => {
-    const match = m.json() as Match;
+  const matchScores = (section.templates(MATCH) as WTFTemplate<Match>[]).map(m => {
+    const match = m.json();
     return [
       match.opponent1.score,
       match.opponent2.score,
@@ -41,7 +49,27 @@ export const getDoubleElim = cache(async (event: string): Promise<BracketInitial
   return { kind: FormatKind.DoubleElim, matchups, matchScores };
 });
 
-async function getResultsSection(event: string): Promise<WTFSection> {
+export const getWildcard = cache(async (event: string): Promise<SwissInitializer> => {
+  const section = await getSection(`${event}/Wildcard`, 'Detailed Results');
+  const subSections = section.children();
+  if (!subSections || !Array.isArray(subSections))
+    throw new Error('Failed to get rounds');
+
+  const rawOverrides = await fs.readFile('data/event-overrides.json', { encoding: 'utf8' });
+  const overrides = JSON.parse(rawOverrides) as EventOverrides;
+  const teamKeys = overrides[event]?.seeding
+    || getFirstNTeams(section.children('Round 1') as WTFSection, 16);
+  const teams = await getTeamsFromKeys(teamKeys);
+  const matchTeams = (subSections as WTFSection[]).flatMap(r =>
+    (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map(t => t.json())
+  );
+
+  const matchups = _.chunk(matchTeams.map(t => teamKeys.indexOf(t.key)), 2) as [number, number][];
+  const matchScores = _.chunk(matchTeams.map(t => t.score), 2) as MatchScore[];
+  return { kind: FormatKind.Swiss, teams, matchups, matchScores, winsNeeded: 4 };
+});
+
+async function getSection(event: string, sectionName: string): Promise<WTFSection> {
   const doc = await wtf.extend(extendTemplates).fetch(event, {
     domain: 'liquipedia.net/rocketleague',
     'Api-User-Agent': userAgent,
@@ -49,9 +77,9 @@ async function getResultsSection(event: string): Promise<WTFSection> {
   if (!doc)
     throw 'Failed to get event';
 
-  const section = (doc as WTFDocument).section('Results');
+  const section = (doc as WTFDocument).section(sectionName);
   if (!section)
-    throw 'Failed to get Results section';
+    throw `Failed to get ${sectionName} section`;
 
   return section;
 }
@@ -67,7 +95,7 @@ function extendTemplates(_models: any, templates: any): void {
     const parsed = {
       key: obj.list[0],
       score,
-      template: 'teamopponent',
+      template: TEAM_OPPONENT,
     };
     list.push(parsed);
     return JSON.stringify(parsed);
@@ -78,18 +106,20 @@ function extendTemplates(_models: any, templates: any): void {
     const parsed = {
       opponent1: JSON.parse(obj.opponent1),
       opponent2: JSON.parse(obj.opponent2),
-      template: 'match',
+      template: MATCH,
     }
     list.push(parsed);
     return JSON.stringify(parsed);
   }
 }
 
-async function getFirstNTeams(section: WTFSection, n: number): Promise<Team[]> {
-  const teamKeys = (section.templates('teamopponent') as WTFTemplate[])
+function getFirstNTeams(section: WTFSection, n: number): string[] {
+  return (section.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[])
     .slice(0, n)
-    .map(t => (t.json() as TeamOpponent).key);
+    .map(t => t.json().key);
+}
 
+async function getTeamsFromKeys(teamKeys: string[]): Promise<Team[]> {
   // Get team images and names
   const APIBaseURL = 'https://liquipedia.net/rocketleague/api.php?'
   const teamRequestURL = APIBaseURL + new URLSearchParams({

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Controls from "components/controls";
 import DoubleElim from "./formats/doubleElim";
-import { Swiss } from "libs/swiss";
+import { Swiss } from "libs/formats/swiss";
 import { BracketInitializer, FormatInitializer, FormatKind, SwissInitializer } from "libs/types";
 import { DoubleElimBracket } from "libs/formats/doubleElim";
 

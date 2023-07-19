@@ -1,4 +1,4 @@
-import { Swiss } from './swiss';
+import { Swiss } from './formats/swiss';
 import _ from 'lodash';
 import { Team, MatchScore, FormatKind } from './types';
 
