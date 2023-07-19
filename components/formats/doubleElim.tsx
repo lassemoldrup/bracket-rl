@@ -1,16 +1,25 @@
+'use client';
+
 import { BracketNode } from "libs/formats/bracket";
 import { DoubleElimBracket } from "libs/formats/doubleElim";
 import styles from 'styles/formats/DoubleElim.module.scss';
 import { BracketLines, BracketProps, Column, Match, BracketLinesColumn } from "./bracket";
+import { BracketInitializer } from "libs/types";
+import { useRef, useState } from "react";
+import Controls from "components/controls";
 
 export default function DoubleElim({
-  bracket,
-  redrawBracket,
+  init
 }: {
-  bracket: DoubleElimBracket
-} & BracketProps) {
-  return (
-    <div className={styles['double-elim']}>
+  init: BracketInitializer
+}) {
+  const bracketRef = useRef(null);
+  const [bracket, setBracket] = useState(new DoubleElimBracket(init));
+  const redrawBracket = () => setBracket({ ...bracket });
+  const clearBracket = () => setBracket(new DoubleElimBracket({ ...init, matchScores: [] }));
+
+  return (<>
+    <div className={styles['double-elim']} ref={bracketRef}>
       <DoubleElimColumn upper={bracket.upperR1} lower={bracket.lowerR1} upperTitle='UB Round 1' lowerTitle='LB Round 1' redrawBracket={redrawBracket} />
       <DoubleElimBracketLinesColumn upperCount={4} lowerCount={4} lowerIsStraight />
       <DoubleElimColumn upper={bracket.upperQuarters} lower={bracket.lowerR2} upperTitle='UB Quarterfinals' lowerTitle='LB Round 2' redrawBracket={redrawBracket} />
@@ -30,7 +39,8 @@ export default function DoubleElim({
         </div>
       </div>
     </div>
-  );
+    <Controls formatRef={bracketRef} clearFormat={clearBracket} />
+  </>);
 }
 
 function DoubleElimColumn({

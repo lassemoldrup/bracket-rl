@@ -1,9 +1,9 @@
 import 'server-only';
 
 import { getWildcard } from 'libs/liquipedia';
-import Format from 'components/format';
+import Worlds from 'components/formats/worlds';
 
-export default async function Worlds({
+export default async function WorldsEvent({
   params: {
     season,
   },
@@ -16,6 +16,6 @@ export default async function Worlds({
     throw new Error('Unsupported worlds season');
 
   return (
-    <Format init={await getWildcard(event_string)}></Format>
+    <Worlds swissInit={await getWildcard(event_string)} />
   );
 }

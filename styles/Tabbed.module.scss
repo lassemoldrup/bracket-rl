@@ -1,0 +1,45 @@
+@use 'vars' as *;
+
+$tab-height: 32px;
+
+.tabs-container {
+  margin-top: $tab-height;
+}
+
+.tabs {
+  width: 100vw;
+  padding: 0 4px;
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  size: 20pt;
+  font-weight: bold;
+  line-height: 0;
+  user-select: none;
+  box-shadow: 0 1px 4px darken($main-bg-color, 2%);
+}
+
+.tab {
+  background: $bg-color-light;
+  margin: 0 4px;
+  border-radius: $border-radius;
+  flex-basis: 0;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: $tab-height;
+  text-align: center;
+  cursor: pointer;
+
+  &.active {
+    background: $bg-color-lighter;
+    cursor: default;
+  }
+
+  &:not(.active):hover,
+  &:not(.active):active {
+    background: mix($bg-color-lighter, $bg-color-light);
+  }
+}

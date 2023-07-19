@@ -7,15 +7,16 @@ import { toBlob } from 'html-to-image';
 import FileSaver from 'file-saver';
 
 export default function Controls({
-  formatElement,
+  formatRef,
   clearFormat,
 }: {
-  formatElement: HTMLElement | null,
+  formatRef: React.RefObject<HTMLElement>,
   clearFormat: () => void,
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const captureBracket = async () => {
+    const formatElement = formatRef.current;
     if (!formatElement) return;
 
     setIsDownloading(true);

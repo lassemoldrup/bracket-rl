@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { getDoubleElim } from 'libs/liquipedia';
-import Format from 'components/format';
+import DoubleElim from 'components/formats/doubleElim';
 
 export default async function SpringEvent({
   params: {
@@ -16,7 +16,7 @@ export default async function SpringEvent({
     event_string = `${event_string}/${event.join('/')}`;
 
   return (
-    <Format init={await getDoubleElim(event_string)}></Format>
+    <DoubleElim init={await getDoubleElim(event_string)} />
   );
 }
 

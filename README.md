@@ -6,8 +6,8 @@ This is a tool for building prediction brackets for Rocket League esports tourna
 ## TODO List
 The below list is a non-exhaustive list over features that need to be implemented in order of priority.
 
-* Support for the Worlds format:
-  - Implement the rules for the different stages. These are: Swiss, double elimination groups, and single elimination.
+* Support for the Worlds format (Swiss into double elimination groups into single elimination):
+  - Implement the rules for the different stages.
     - ~~Swiss~~
     - Groups
     - Single elim.
@@ -15,7 +15,7 @@ The below list is a non-exhaustive list over features that need to be implemente
     - ~~Swiss~~
     - Groups
     - Single elim.
-  - Implement a tabbed UI to support different formats in the same event.
+  - ~~Implement a tabbed UI to support different formats in the same event.~~
   - Implement UIs for the different formats.
     - Swiss
     - Groups

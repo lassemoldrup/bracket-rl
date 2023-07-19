@@ -6,28 +6,19 @@ export interface Team {
 export type MatchScore = [number | null, number | null];
 export type Matchup = [Team, Team];
 
-export enum FormatKind {
-  DoubleElim,
-  Swiss,
-};
-
-export interface FormatInitializer {
-  kind: FormatKind,
+export interface BracketInitializer {
+  matchups: Matchup[],
   matchScores: MatchScore[],
 }
 
-export interface BracketInitializer extends FormatInitializer {
-  kind: FormatKind.DoubleElim,
-  matchups: Matchup[],
-}
-
-export interface SwissInitializer extends FormatInitializer {
-  kind: FormatKind.Swiss;
+export interface SwissInitializer {
   // Seeeded order
   teams: Team[],
   // Indices in teams
   matchups: [number, number][],
   winsNeeded: number,
+  matchScores: MatchScore[],
+
 }
 
 export interface WinLossRecord {

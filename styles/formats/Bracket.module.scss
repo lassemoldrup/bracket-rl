@@ -30,6 +30,7 @@ $match-width: 200px;
 
 .match {
   outline: 1px solid $border-color;
+  border-radius: $border-radius;
   background: $bg-color-lighter;
 }
 
@@ -42,6 +43,13 @@ $match-width: 200px;
   width: 175px;
   display: flex;
   align-items: center;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
 }
 
 .team-name {
@@ -51,16 +59,12 @@ $match-width: 200px;
 }
 
 .team-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 5px;
   width: 15px;
   height: 15px;
-}
-
-.team img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
 }
 
 .score {

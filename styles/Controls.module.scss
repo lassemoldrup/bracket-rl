@@ -5,37 +5,37 @@
   display: inline-flex;
   padding: 10px;
   background: $main-bg-color;
-  border-radius: 5px;
+  border-radius: $border-radius;
   bottom: 5px;
   left: 5px;
-  margin-left: -1px;
-}
+  margin: 0 -10px;
 
-.controls button {
-  background: $bg-color-light;
-  color: $main-color;
-  font-size: 12pt;
-  padding: 0.6em 0.8em;
-  appearance: none;
-  cursor: pointer;
-  border: none; // border: 1px solid $border-color;
-  border-radius: 5px;
-  line-height: 1em;
-  display: inline-flex;
-  align-items: center;
-}
+  button {
+    background: $bg-color-light;
+    color: $main-color;
+    font-size: 12pt;
+    padding: 0.6em 0.8em;
+    appearance: none;
+    cursor: pointer;
+    border: none;
+    border-radius: $border-radius;
+    line-height: 1em;
+    display: inline-flex;
+    align-items: center;
 
-.controls button:disabled {
-  cursor: default;
-}
+    &:disabled {
+      cursor: default;
+    }
 
-.controls button:not(:last-child) {
-  margin-right: 10px;
-}
+    &:not(:last-child) {
+      margin-right: 12px;
+    }
 
-.controls button:not(:disabled):hover,
-.controls button:not(:disabled):active {
-  background: $bg-color-lighter;
+    &:not(:disabled):hover,
+    &:not(:disabled):active {
+      background: $bg-color-lighter;
+    }
+  }
 }
 
 .spinner {

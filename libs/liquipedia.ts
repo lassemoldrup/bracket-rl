@@ -2,7 +2,7 @@ import wtf from 'wtf_wikipedia';
 import _ from 'lodash';
 import { cache } from 'react';
 import fs from 'fs/promises';
-import { BracketInitializer, Matchup, MatchScore, FormatKind, Team, SwissInitializer } from './types';
+import { BracketInitializer, Matchup, MatchScore, Team, SwissInitializer } from './types';
 
 const userAgent = `bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
 
@@ -46,7 +46,7 @@ export const getDoubleElim = cache(async (event: string): Promise<BracketInitial
     ] as MatchScore;
   });
 
-  return { kind: FormatKind.DoubleElim, matchups, matchScores };
+  return { matchups, matchScores };
 });
 
 export const getWildcard = cache(async (event: string): Promise<SwissInitializer> => {
@@ -57,8 +57,8 @@ export const getWildcard = cache(async (event: string): Promise<SwissInitializer
 
   const rawOverrides = await fs.readFile('data/event-overrides.json', { encoding: 'utf8' });
   const overrides = JSON.parse(rawOverrides) as EventOverrides;
-  const teamKeys = overrides[event]?.seeding
-    || getFirstNTeams(section.children('Round 1') as WTFSection, 16);
+  const teamKeys = overrides[event]?.seeding ||
+    _.sortBy(getFirstNTeams(section.children('Round 1') as WTFSection, 16), (_, i) => i % 2);
   const teams = await getTeamsFromKeys(teamKeys);
   const matchTeams = (subSections as WTFSection[]).flatMap(r =>
     (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map(t => t.json())
@@ -66,7 +66,7 @@ export const getWildcard = cache(async (event: string): Promise<SwissInitializer
 
   const matchups = _.chunk(matchTeams.map(t => teamKeys.indexOf(t.key)), 2) as [number, number][];
   const matchScores = _.chunk(matchTeams.map(t => t.score), 2) as MatchScore[];
-  return { kind: FormatKind.Swiss, teams, matchups, matchScores, winsNeeded: 4 };
+  return { teams, matchups, matchScores, winsNeeded: 4 };
 });
 
 async function getSection(event: string, sectionName: string): Promise<WTFSection> {
