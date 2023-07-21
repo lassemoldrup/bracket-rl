@@ -45,6 +45,8 @@ $team-height: 25px;
   width: $team-height;
   height: 100%;
   cursor: pointer;
+  caret-color: transparent;
+  user-select: none;
   background: $bg-color-light;
   text-align: center;
   display: flex;

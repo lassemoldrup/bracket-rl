@@ -23,6 +23,7 @@ function TeamWithRef({
 } & FormatProps, ref: ScoreRef) {
   const getSetScoreHandler = (field: 'score' | 'bracketResetScore') => {
     return (event: KeyboardEvent<HTMLDivElement>) => {
+      event.preventDefault();
       const keyNum = parseInt(event.key);
       if (event.key === 'Backspace')
         slot[field] = null;
@@ -64,13 +65,13 @@ function TeamWithRef({
       </div>
       <Vertical />
       <div tabIndex={0} className={scoreClassName} onKeyDown={getSetScoreHandler('score')}
-        inputMode='numeric' ref={ref}>
+        contentEditable inputMode='numeric' ref={ref}>
         {slot.score ?? ''}
       </div>
       {slot.match.bracketReset && <>
         <Vertical />
         <div tabIndex={isBracketReset ? 0 : undefined} className={bracketResetScoreClassName}
-          onKeyDown={getSetScoreHandler('bracketResetScore')} inputMode='numeric'>
+          onKeyDown={getSetScoreHandler('bracketResetScore')} contentEditable inputMode='numeric'>
           {slot.bracketResetScore ?? ''}
         </div>
       </>}
