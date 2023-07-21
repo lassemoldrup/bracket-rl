@@ -25,3 +25,18 @@ export interface WinLossRecord {
   win: number,
   loss: number,
 }
+
+// TODO: come up with a better name
+export interface TeamMatch {
+  slots: [TeamSlot, TeamSlot],
+  bracketReset?: boolean,
+}
+
+export interface TeamSlot {
+  match: TeamMatch,
+  winsNeeded: number,
+  team: Team | null,
+  score: number | null,
+  bracketResetScore?: number | null,
+  hasWon(): boolean,
+}

@@ -15,14 +15,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body><div className={styles.container}>
-        <main className={styles.content}>
-          {children}
-        </main >
-        <footer className={styles.footer}>
-          Bracket data and images from <a href='https://liquipedia.net/rocketleague'>Liquipedia</a>.
-        </footer>
-      </div ></body>
+      <body>
+        <div className={styles.container}>
+          <main className={styles.content}>
+            {children}
+          </main >
+          <footer className={styles.footer}>
+            Bracket data and images from <a href='https://liquipedia.net/rocketleague'>Liquipedia</a>.
+          </footer>
+        </div >
+      </body>
     </html>
-  )
+  );
 }

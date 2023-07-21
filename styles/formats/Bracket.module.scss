@@ -2,7 +2,6 @@
 
 $header-height: 40px;
 $horizontal-gap: 40px;
-$team-height: 25px;
 $match-width: 200px;
 
 .column {
@@ -35,76 +34,17 @@ $match-width: 200px;
   background: $bg-color-lighter;
 }
 
-.team-container {
-  height: $team-height;
-  display: flex;
-}
-
-.team {
-  width: 175px;
-  display: flex;
-  align-items: center;
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-  }
-}
-
-.team-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.team-logo-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 5px;
-  width: 15px;
-  height: 15px;
-}
-
-.score {
-  flex-shrink: 0;
-  border: 0;
-  border-left: 1px solid $border-color;
-  width: $team-height;
-  height: 100%;
-  cursor: pointer;
-  appearance: none;
-  background: $bg-color-light;
-  color: inherit;
-  text-align: center;
-  font-size: 12pt;
-}
-
-.score[disabled] {
-  cursor: default;
-}
-
-.score:first-of-type {
-  margin-left: auto;
-}
-
-.max-score {
-  font-weight: bolder;
-}
-
 .bracket-lines {
   display: flex;
   align-items: center;
   width: 100%;
   flex-grow: 2;
   flex-basis: 2px;
-}
 
-.bracket-lines>* {
-  flex-basis: 0;
-  flex-grow: 1;
+  >* {
+    flex-basis: 0;
+    flex-grow: 1;
+  }
 }
 
 .outgoing-lines {

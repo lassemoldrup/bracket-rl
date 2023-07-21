@@ -1,0 +1,50 @@
+@use '../vars' as *;
+
+.swiss {
+  display: flex;
+  justify-content: space-evenly;
+  max-width: 1500px;
+  flex-wrap: wrap;
+  margin: -20px;
+  margin-bottom: 0;
+}
+
+.round {
+  padding: 20px;
+}
+
+.round-header {
+  size: 24pt;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.match-list {
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  background: $bg-color-lighter;
+
+  &:not(:last-child) {
+    margin-bottom: 20px;
+  }
+
+  >*:not(:last-child) {
+    border-bottom: 1px solid $border-color;
+  }
+}
+
+.match-list-header {
+  text-align: center;
+  border-radius: $border-radius $border-radius 0 0;
+  background: $bg-color-light;
+  height: 1.25em;
+}
+
+.match {
+  display: flex;
+  font-size: 10pt;
+
+  >*:last-child {
+    flex-direction: row-reverse;
+  }
+}

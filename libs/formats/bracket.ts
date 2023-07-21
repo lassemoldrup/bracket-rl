@@ -1,6 +1,6 @@
-import { Matchup, Team } from '../types';
+import { TeamMatch, Matchup, Team, TeamSlot } from '../types';
 
-export class BracketNode {
+export class BracketNode implements TeamMatch {
   winsNeeded: number;
   winSlot: BracketSlot | null;
   lossSlot: BracketSlot | null;
@@ -23,21 +23,21 @@ export class BracketNode {
   }
 }
 
-export class BracketSlot {
-  node: BracketNode;
+export class BracketSlot implements TeamSlot {
+  match: BracketNode;
   #team: Team | null = null;
   #score: number | null = null;
   #bracketResetScore: number | null = null;
 
   constructor(node: BracketNode) {
-    this.node = node;
+    this.match = node;
   }
 
   getOther(): BracketSlot {
-    if (this.node.slots[0] === this) {
-      return this.node.slots[1];
+    if (this.match.slots[0] === this) {
+      return this.match.slots[1];
     } else {
-      return this.node.slots[0];
+      return this.match.slots[0];
     }
   }
 
@@ -47,10 +47,10 @@ export class BracketSlot {
 
   set team(value: Team | null) {
     this.#team = value;
-    if (this.score === this.node.winsNeeded && this.node.winSlot)
-      this.node.winSlot.team = value;
-    if (this.getOther().score === this.node.winsNeeded && this.node.lossSlot)
-      this.node.lossSlot.team = value;
+    if (this.score === this.winsNeeded && this.match.winSlot)
+      this.match.winSlot.team = value;
+    if (this.getOther().score === this.winsNeeded && this.match.lossSlot)
+      this.match.lossSlot.team = value;
   }
 
   get score(): number | null {
@@ -59,26 +59,24 @@ export class BracketSlot {
 
   set score(value: number | null) {
     if (value !== null) {
-      value = Math.min(value, this.node.winsNeeded);
+      value = Math.min(value, this.winsNeeded);
       value = Math.max(value, 0);
     }
 
-    if (this.score === this.node.winsNeeded && value !== this.node.winsNeeded && this.node.winSlot) {
-      this.node.winSlot.team = null;
-      this.node.winSlot.score = null;
-      if (this.node.lossSlot) {
-        this.node.lossSlot.team = null;
-        this.node.lossSlot.score = null;
+    if (this.score === this.winsNeeded && value !== this.winsNeeded && this.match.winSlot) {
+      this.match.winSlot.team = null;
+      if (this.match.lossSlot) {
+        this.match.lossSlot.team = null;
       }
     }
 
-    if (value === this.node.winsNeeded && value != this.#score) {
+    if (value === this.winsNeeded && value != this.#score) {
       if (this.getOther().score === value)
         this.getOther().score = null;
-      if (this.node.winSlot)
-        this.node.winSlot.team = this.team;
-      if (this.node.lossSlot)
-        this.node.lossSlot.team = this.getOther().team;
+      if (this.match.winSlot)
+        this.match.winSlot.team = this.team;
+      if (this.match.lossSlot)
+        this.match.lossSlot.team = this.getOther().team;
       this.#bracketResetScore = null;
       this.getOther().bracketResetScore = null;
     }
@@ -92,20 +90,24 @@ export class BracketSlot {
 
   set bracketResetScore(value: number | null) {
     if (value !== null) {
-      value = Math.min(value, this.node.winsNeeded);
+      value = Math.min(value, this.winsNeeded);
       value = Math.max(value, 0);
     }
 
-    if (value === this.node.winsNeeded && this.getOther().bracketResetScore === value) {
+    if (value === this.winsNeeded && this.getOther().bracketResetScore === value) {
       this.getOther().bracketResetScore = null;
     }
 
     this.#bracketResetScore = value;
   }
 
+  get winsNeeded() {
+    return this.match.winsNeeded;
+  }
+
   hasWon(): boolean {
-    if (this.node.bracketReset && this.node.slots[1].score === this.node.winsNeeded)
-      return this.#bracketResetScore === this.node.winsNeeded;
-    return this.#score === this.node.winsNeeded;
+    if (this.match.bracketReset && this.match.slots[1].score === this.winsNeeded)
+      return this.#bracketResetScore === this.winsNeeded;
+    return this.#score === this.winsNeeded;
   }
 }

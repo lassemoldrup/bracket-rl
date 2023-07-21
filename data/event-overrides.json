@@ -1,22 +1,22 @@
 {
   "Rocket_League_Championship_Series/2021-22": {
     "seeding": [
-      "Version1",
-      "Renegades",
-      "Dignitas",
-      "Spacestation Gaming",
-      "Karmine Corp",
-      "Pioneers",
-      "Team Secret",
-      "Senbei Strikers",
-      "Smpr Esports",
-      "OpTic Gaming",
-      "The Club",
-      "Veloce Esports",
-      "01 Esports",
-      "Orlando Pirates Exdee",
-      "Gaimin Gladiators",
-      "Bravado Gaming"
+      "version1",
+      "renegades",
+      "dignitas",
+      "spacestation gaming",
+      "karmine corp",
+      "pioneers",
+      "team secret",
+      "senbei strikers",
+      "smpr esports",
+      "optic gaming",
+      "the club",
+      "veloce esports",
+      "01 esports",
+      "orlando pirates exdee",
+      "gaimin gladiators",
+      "bravado gaming"
     ]
   }
 }

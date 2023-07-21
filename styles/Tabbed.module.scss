@@ -1,14 +1,15 @@
 @use 'vars' as *;
 
 $tab-height: 32px;
+$tab-gap: 8px;
 
 .tabs-container {
-  margin-top: $tab-height;
+  margin-top: $tab-height + $tab-gap;
 }
 
 .tabs {
   width: 100vw;
-  padding: 0 4px;
+  padding: $tab-gap $tab-gap / 2;
   display: flex;
   position: fixed;
   top: 0;
@@ -22,7 +23,7 @@ $tab-height: 32px;
 
 .tab {
   background: $bg-color-light;
-  margin: 0 4px;
+  margin: 0 $tab-gap / 2;
   border-radius: $border-radius;
   flex-basis: 0;
   flex-grow: 1;

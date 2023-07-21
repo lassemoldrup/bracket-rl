@@ -1,0 +1,14 @@
+@use 'vars' as *;
+
+.vertical {
+  position: relative;
+}
+
+.vertical:after {
+  content: '';
+  width: 0;
+  height: 100%;
+  position: absolute;
+  border-left: 1px solid $border-color;
+  top: 0;
+}

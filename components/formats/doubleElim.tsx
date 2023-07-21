@@ -18,7 +18,7 @@ export default function DoubleElim({
   const redrawBracket = () => setBracket({ ...bracket });
   const clearBracket = () => setBracket(new DoubleElimBracket({ ...init, matchScores: [] }));
 
-  return (<>
+  return (<div>
     <div className={styles['double-elim']} ref={bracketRef}>
       <DoubleElimColumn upper={bracket.upperR1} lower={bracket.lowerR1} upperTitle='UB Round 1' lowerTitle='LB Round 1' redrawBracket={redrawBracket} />
       <DoubleElimBracketLinesColumn upperCount={4} lowerCount={4} lowerIsStraight />
@@ -35,12 +35,12 @@ export default function DoubleElim({
       <div className={styles['grand-final-column']}>
         <div className={styles['column-header']}>Grand Final</div>
         <div className={styles['grand-final-match']}>
-          <Match node={bracket.grandFinal} redrawBracket={redrawBracket} />
+          <Match node={bracket.grandFinal} redrawFormat={redrawBracket} />
         </div>
       </div>
     </div>
     <Controls formatRef={bracketRef} clearFormat={clearBracket} />
-  </>);
+  </div>);
 }
 
 function DoubleElimColumn({
@@ -74,7 +74,7 @@ function DoubleElimInnerColumn({
   title?: string,
 } & BracketProps) {
   return title ?
-    <Column matches={matches as BracketNode[]} title={title} redrawBracket={redrawBracket} />
+    <Column matches={matches as BracketNode[]} title={title} redrawFormat={redrawBracket} />
     :
     <BracketLinesColumn count={matches as number} />;
 }

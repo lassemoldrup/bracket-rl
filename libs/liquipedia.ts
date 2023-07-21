@@ -59,6 +59,7 @@ export const getWildcard = cache(async (event: string): Promise<SwissInitializer
   const overrides = JSON.parse(rawOverrides) as EventOverrides;
   const teamKeys = overrides[event]?.seeding ||
     _.sortBy(getFirstNTeams(section.children('Round 1') as WTFSection, 16), (_, i) => i % 2);
+
   const teams = await getTeamsFromKeys(teamKeys);
   const matchTeams = (subSections as WTFSection[]).flatMap(r =>
     (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map(t => t.json())
@@ -89,11 +90,11 @@ function extendTemplates(_models: any, templates: any): void {
     const obj = parse(tmpl);
     // Return a score of 100 if match was forfeit, this will get clamped to the match max
     let score: number | null = obj.score === 'W' ? 100 : parseInt(obj.score);
-    // if score is NaN
+    // if score is NaN i.e. 'FF'
     if (score !== score)
-      score = null;
+      score = 0;
     const parsed = {
-      key: obj.list[0],
+      key: obj.list[0].toLowerCase(),
       score,
       template: TEAM_OPPONENT,
     };

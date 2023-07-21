@@ -1,10 +1,10 @@
 import assert from "assert";
 import _ from "lodash";
-import { Team, SwissInitializer, Matchup, WinLossRecord } from "../types";
+import { Team, SwissInitializer, Matchup, WinLossRecord, TeamSlot, TeamMatch } from "../types";
 
-export class Swiss {
+export class SwissFormat {
   initialSeeding: Team[];
-  rounds: SwissMatchList[][]
+  rounds: SwissMatchList[][];
 
   // teams is the list of teams sorted by seeding.
   // matchups is the list of all matchups that have happened, given as indices in the teams array
@@ -51,12 +51,17 @@ export class Swiss {
   }
 
   propagate(round: number) {
-    if (round !== 4 && this.isDone(round)) {
+    if (round !== 4) {
       const nextRound = this.rounds[round + 1];
-      for (let i = 0; i < nextRound.length; i++) {
-        const matchups = this.getMatchupsForMatchList(round + 1, i);
-        nextRound[i].setMatchups(matchups);
-      }
+      if (this.isDone(round)) {
+        for (let i = 0; i < nextRound.length; i++) {
+          const matchups = this.getMatchupsForMatchList(round + 1, i);
+          nextRound[i].setMatchups(matchups);
+        }
+      } else
+        for (let i = 0; i < nextRound.length; i++)
+          nextRound[i].clearTeams();
+      this.propagate(round + 1);
     }
   }
 
@@ -152,11 +157,11 @@ export class Swiss {
 }
 
 export class SwissMatchList {
-  format: Swiss;
+  format: SwissFormat;
   matches: SwissMatch[];
   round: number
 
-  constructor(format: Swiss, numMatches: number, round: number, winsNeeded: number) {
+  constructor(format: SwissFormat, numMatches: number, round: number, winsNeeded: number) {
     this.format = format;
     this.matches = _.range(numMatches).map(_ => new SwissMatch(this, winsNeeded));
     this.round = round;
@@ -174,8 +179,14 @@ export class SwissMatchList {
         (matchup as SwissMatch).slots[i].team = (pair as Team[])[i];
   }
 
+  clearTeams() {
+    for (const match of this.matches)
+      for (let i = 0; i < 2; i++)
+        match.slots[i].team = null;
+  }
+
   isDone(): boolean {
-    return this.matches.every(m => m.winner);
+    return this.matches.every(m => m.winner && m.slots[0].score !== null && m.slots[1].score !== null);
   }
 
   propagate() {
@@ -183,7 +194,7 @@ export class SwissMatchList {
   }
 }
 
-export class SwissMatch {
+export class SwissMatch implements TeamMatch {
   matchList: SwissMatchList;
   slots: [SwissSlot, SwissSlot];
 
@@ -204,7 +215,7 @@ export class SwissMatch {
   }
 }
 
-export class SwissSlot {
+export class SwissSlot implements TeamSlot {
   match: SwissMatch;
   winsNeeded: number;
   team: Team | null = null;
@@ -220,6 +231,8 @@ export class SwissSlot {
   }
 
   set score(value: number | null) {
+    if (value && value > this.winsNeeded)
+      value = this.winsNeeded;
     if (this.#score === value)
       return;
 

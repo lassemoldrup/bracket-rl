@@ -1,6 +1,6 @@
-import { Swiss } from './formats/swiss';
+import { SwissFormat } from './formats/swiss';
 import _ from 'lodash';
-import { Team, MatchScore, FormatKind } from './types';
+import { Team, MatchScore } from './types';
 
 function namesToMatchups(teams: Team[], ...names: [string, string][]): [number, number][] {
   return names.map(m => m.map(n => teams.map(t => t.name).indexOf(n)) as [number, number]);
@@ -10,7 +10,7 @@ function namesToTeams(...names: string[]): Team[] {
   return names.map(name => ({ name, image: '' }));
 }
 
-function worlds2122Wildcard(): Swiss {
+function worlds2122Wildcard(): SwissFormat {
   const teams = namesToTeams('V1', 'RNG', 'DIG', 'SSG', 'KC', 'KCP', 'TS', 'SEN',
     'SMPR', 'OG', 'CLUB', 'VEL', '01', 'OP', 'GLA', 'BVD');
   const matchups = namesToMatchups(teams,
@@ -32,7 +32,7 @@ function worlds2122Wildcard(): Swiss {
     [4, 1],
   ];
   const winsNeeded = 4;
-  return new Swiss({ kind: FormatKind.Swiss, teams, matchups, matchScores, winsNeeded });
+  return new SwissFormat({ teams, matchups, matchScores, winsNeeded });
 }
 
 test('getMatchupsForMatchList correct for second round matchups Worlds Wildcard 21/22', () => {
