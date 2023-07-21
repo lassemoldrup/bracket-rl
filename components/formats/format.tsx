@@ -1,45 +1,59 @@
 import Image from 'next/image';
 import { TeamSlot } from "libs/types";
-import { ChangeEvent } from "react";
+import { ForwardedRef, KeyboardEvent, Ref, RefObject, forwardRef, useRef } from "react";
 import styles from "styles/formats/Format.module.scss";
 import { Vertical } from 'components/misc';
+import classNames from 'classnames';
+
+export type ScoreRef = ForwardedRef<HTMLDivElement>;
 
 export interface FormatProps {
+  nextRef?: RefObject<HTMLDivElement>,
   redrawFormat(): void,
 }
 
-export function Team({ slot, redrawFormat }: { slot: TeamSlot } & FormatProps) {
-  const setScore = (event: ChangeEvent) => {
-    const score = parseInt((event.target as HTMLInputElement).value);
-    // if (score is NaN)
-    if (score !== score) {
-      slot.score = null;
-    } else {
-      slot.score = score;
-    }
-    redrawFormat();
+function TeamWithRef({
+  slot,
+  reverse,
+  nextRef,
+  redrawFormat
+}: {
+  slot: TeamSlot,
+  reverse?: boolean,
+} & FormatProps, ref: ScoreRef) {
+  const getSetScoreHandler = (field: 'score' | 'bracketResetScore') => {
+    return (event: KeyboardEvent<HTMLDivElement>) => {
+      const keyNum = parseInt(event.key);
+      if (event.key === 'Backspace')
+        slot[field] = null;
+      // if (numKey is not NaN)
+      else if (keyNum === keyNum)
+        slot[field] = keyNum;
+      else return;
+
+      redrawFormat();
+      nextRef?.current?.focus();
+    };
   };
 
-  const setBracketResetScore = (event: ChangeEvent) => {
-    const score = parseInt((event.target as HTMLInputElement).value);
-    // if (score is NaN)
-    if (score !== score) {
-      slot.bracketResetScore = null;
-    } else {
-      slot.bracketResetScore = score;
-    }
-    redrawFormat();
-  }
+  const isBracketReset = slot.match.bracketReset && slot.match.slots[1].score === slot.winsNeeded;
 
-  const scoreClassName = styles.score
-    + (slot.score === slot.winsNeeded ? ' ' + styles['max-score'] : '');
-  const bracketResetScoreClassName = styles.score
-    + (slot.hasWon() ? ' ' + styles['max-score'] : '');
-  const teamNameClassName = styles['team-name']
-    + (slot.hasWon() ? ' ' + styles['max-score'] : '');
+  const teamContainerClassName = classNames(styles['team-container'], {
+    [styles.reversed]: reverse ?? false,
+  });
+  const scoreClassName = classNames(styles.score, {
+    [styles['max-score']]: slot.score === slot.winsNeeded,
+  });
+  const bracketResetScoreClassName = classNames(styles.score, {
+    [styles['max-score']]: slot.hasWon(),
+    [styles.disabled]: !isBracketReset,
+  });
+  const teamNameClassName = classNames(styles['team-name'], {
+    [styles['max-score']]: slot.hasWon(),
+  });
 
   return (
-    <div className={styles['team-container']}>
+    <div className={teamContainerClassName}>
       <div className={styles.team}>
         {slot.team && <>
           <div className={styles['team-logo-container']}>
@@ -49,16 +63,19 @@ export function Team({ slot, redrawFormat }: { slot: TeamSlot } & FormatProps) {
         </>}
       </div>
       <Vertical />
-      <input value={slot.score === null ? '' : slot.score}
-        onChange={setScore} className={scoreClassName}>
-      </input>
+      <div tabIndex={0} className={scoreClassName} onKeyDown={getSetScoreHandler('score')}
+        inputMode='numeric' ref={ref}>
+        {slot.score ?? ''}
+      </div>
       {slot.match.bracketReset && <>
         <Vertical />
-        <input value={slot.bracketResetScore === null ? '' : slot.bracketResetScore}
-          disabled={slot.match.slots[1].score !== slot.winsNeeded}
-          onChange={setBracketResetScore} className={bracketResetScoreClassName}>
-        </input>
+        <div tabIndex={isBracketReset ? 0 : undefined} className={bracketResetScoreClassName}
+          onKeyDown={getSetScoreHandler('bracketResetScore')} inputMode='numeric'>
+          {slot.bracketResetScore ?? ''}
+        </div>
       </>}
     </div>
   );
 }
+
+export const Team = forwardRef(TeamWithRef);

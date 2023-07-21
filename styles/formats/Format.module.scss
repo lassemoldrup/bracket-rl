@@ -5,6 +5,10 @@ $team-height: 25px;
 .team-container {
   height: $team-height;
   display: flex;
+
+  &.reversed {
+    flex-direction: row-reverse;
+  }
 }
 
 .team {
@@ -41,14 +45,21 @@ $team-height: 25px;
   width: $team-height;
   height: 100%;
   cursor: pointer;
-  appearance: none;
   background: $bg-color-light;
-  color: inherit;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1em;
   font-size: 12pt;
 
-  &[disabled] {
+  &.disabled {
     cursor: default;
+  }
+
+  &:focus {
+    outline: 2px solid $accent-color;
+    z-index: 100;
   }
 }
 

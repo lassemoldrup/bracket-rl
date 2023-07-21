@@ -58,19 +58,25 @@ export class BracketSlot implements TeamSlot {
   }
 
   set score(value: number | null) {
+    if (value == this.#score)
+      return;
+
     if (value !== null) {
       value = Math.min(value, this.winsNeeded);
       value = Math.max(value, 0);
     }
 
-    if (this.score === this.winsNeeded && value !== this.winsNeeded && this.match.winSlot) {
+    if (this.score === this.winsNeeded && this.match.winSlot) {
       this.match.winSlot.team = null;
       if (this.match.lossSlot) {
         this.match.lossSlot.team = null;
       }
+    } else if (this.score === this.winsNeeded) {
+      this.#bracketResetScore = null;
+      this.getOther().bracketResetScore = null;
     }
 
-    if (value === this.winsNeeded && value != this.#score) {
+    if (value === this.winsNeeded) {
       if (this.getOther().score === value)
         this.getOther().score = null;
       if (this.match.winSlot)

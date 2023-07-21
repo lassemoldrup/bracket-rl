@@ -21,7 +21,8 @@ The below list is a non-exhaustive list over features that need to be implemente
     - Groups
     - Single elim.
 * ~~"Live" updates: New data should be pulled every minute for live events.~~
-* QOL improvements.
+* ~~QOL improvements.~~
+* Eslint and prettier
 * Support for multiple events, e.g. regionals for all regions.
   - ~~Backend~~
   - UI

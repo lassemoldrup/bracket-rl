@@ -2,26 +2,49 @@ import styles from 'styles/formats/Bracket.module.scss';
 import { range } from 'lodash';
 import { BracketNode } from 'libs/formats/bracket';
 import classNames from 'classnames';
-import { FormatProps, Team } from './format';
+import { FormatProps, ScoreRef, Team } from './format';
+import { forwardRef, useRef } from 'react';
+import _ from 'lodash';
 
-export function Column({ matches, title, redrawFormat: redrawBracket }: { matches: BracketNode[], title: string } & FormatProps) {
+// Column and Match export the ref of the first score input
+export const Column = forwardRef(({
+  matches,
+  title,
+  nextRef,
+  redrawFormat,
+}: {
+  matches: BracketNode[],
+  title: string
+} & FormatProps, ref: ScoreRef) => {
+  const refs = _.range(matches.length - 1).map(_i => useRef(null));
+
   return (<>
     <div className={styles['column-header']}>{title}</div>
     <div className={classNames(styles.column, styles['match-column'])}>
-      {matches.map((node, i) => <Match node={node} redrawFormat={redrawBracket} key={i} />)}
+      {matches.map((node, i) => <Match node={node} ref={i === 0 ? ref : refs[i - 1]}
+        nextRef={refs[i] ?? nextRef} redrawFormat={redrawFormat} key={i} />
+      )}
     </div>
   </>);
-}
+});
 
-export function Match({ node, redrawFormat: redrawBracket }: { node: BracketNode } & FormatProps) {
+export const Match = forwardRef(({
+  node,
+  ...formatProps
+}: {
+  node: BracketNode,
+} & FormatProps, ref: ScoreRef) => {
+  const secondRef = useRef(null);
+
   return (
     <div className={styles.match}>
-      <Team slot={node.slots[0]} redrawFormat={redrawBracket} />
+      <Team slot={node.slots[0]} ref={ref} {...formatProps} nextRef={secondRef} />
       <hr />
-      <Team slot={node.slots[1]} redrawFormat={redrawBracket} />
+      <Team slot={node.slots[1]} ref={secondRef} {...formatProps} />
     </div>
   );
-}
+});
+
 
 export function BracketLinesColumn({
   count,

@@ -43,8 +43,4 @@
 .match {
   display: flex;
   font-size: 10pt;
-
-  >*:last-child {
-    flex-direction: row-reverse;
-  }
 }
