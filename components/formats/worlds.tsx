@@ -1,11 +1,13 @@
 import Tabbed from "components/tabbed";
-import { SwissInitializer } from "libs/types";
+import { SwissInitializer, WorldsInitializer } from "libs/types";
 import Swiss from "./swiss";
 
 export default function Worlds({
-  swissInit,
+  wildcardInit: swissInit,
+  mainInit,
 }: {
-  swissInit: SwissInitializer
+  wildcardInit: SwissInitializer,
+  mainInit: WorldsInitializer,
 }) {
   return (
     <Tabbed tabNames={['Wildcard', 'Main Event']}>

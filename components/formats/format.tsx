@@ -5,7 +5,7 @@ import styles from "styles/formats/Format.module.scss";
 import { Vertical } from 'components/misc';
 import classNames from 'classnames';
 
-export type ScoreRef = ForwardedRef<HTMLDivElement>;
+export type ScoreRef = ForwardedRef<HTMLInputElement>;
 
 export interface FormatProps {
   nextRef?: RefObject<HTMLDivElement>,
@@ -22,8 +22,9 @@ function TeamWithRef({
   reverse?: boolean,
 } & FormatProps, ref: ScoreRef) {
   const getSetScoreHandler = (field: 'score' | 'bracketResetScore') => {
-    return (event: KeyboardEvent<HTMLDivElement>) => {
+    return (event: KeyboardEvent<HTMLInputElement>) => {
       event.preventDefault();
+
       const keyNum = parseInt(event.key);
       if (event.key === 'Backspace')
         slot[field] = null;
@@ -47,7 +48,6 @@ function TeamWithRef({
   });
   const bracketResetScoreClassName = classNames(styles.score, {
     [styles['max-score']]: slot.hasWon(),
-    [styles.disabled]: !isBracketReset,
   });
   const teamNameClassName = classNames(styles['team-name'], {
     [styles['max-score']]: slot.hasWon(),
@@ -64,16 +64,12 @@ function TeamWithRef({
         </>}
       </div>
       <Vertical />
-      <div tabIndex={0} className={scoreClassName} onKeyDown={getSetScoreHandler('score')}
-        contentEditable inputMode='numeric' ref={ref}>
-        {slot.score ?? ''}
-      </div>
+      <input className={scoreClassName} value={slot.score ?? ''} readOnly
+        onKeyDown={getSetScoreHandler('score')} inputMode='numeric' ref={ref} />
       {slot.match.bracketReset && <>
         <Vertical />
-        <div tabIndex={isBracketReset ? 0 : undefined} className={bracketResetScoreClassName}
-          onKeyDown={getSetScoreHandler('bracketResetScore')} contentEditable inputMode='numeric'>
-          {slot.bracketResetScore ?? ''}
-        </div>
+        <input disabled={!isBracketReset} className={bracketResetScoreClassName} value={slot.bracketResetScore ?? ''} readOnly
+          onKeyDown={getSetScoreHandler('bracketResetScore')} inputMode='numeric' />
       </>}
     </div>
   );

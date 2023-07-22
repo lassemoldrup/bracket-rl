@@ -2,7 +2,15 @@ import wtf from 'wtf_wikipedia';
 import _ from 'lodash';
 import { cache } from 'react';
 import fs from 'fs/promises';
-import { BracketInitializer, Matchup, MatchScore, Team, SwissInitializer } from './types';
+import {
+  BracketInitializer,
+  Matchup,
+  MatchScore,
+  Team,
+  SwissInitializer,
+  WorldsInitializer,
+  PartialMatchup,
+} from './types';
 
 const userAgent = `bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
 
@@ -14,8 +22,8 @@ interface TeamOpponent {
 
 const MATCH = 'match';
 interface Match {
-  opponent1: TeamOpponent,
-  opponent2: TeamOpponent,
+  opponent1?: TeamOpponent,
+  opponent2?: TeamOpponent,
 }
 
 type EventOverrides = { [event: string]: EventOverride };
@@ -41,8 +49,8 @@ export const getDoubleElim = cache(async (event: string): Promise<BracketInitial
   const matchScores = (section.templates(MATCH) as WTFTemplate<Match>[]).map(m => {
     const match = m.json();
     return [
-      match.opponent1.score,
-      match.opponent2.score,
+      match.opponent1?.score ?? null,
+      match.opponent2?.score ?? null,
     ] as MatchScore;
   });
 
@@ -68,6 +76,34 @@ export const getWildcard = cache(async (event: string): Promise<SwissInitializer
   const matchups = _.chunk(matchTeams.map(t => teamKeys.indexOf(t.key)), 2) as [number, number][];
   const matchScores = _.chunk(matchTeams.map(t => t.score), 2) as MatchScore[];
   return { teams, matchups, matchScores, winsNeeded: 4 };
+});
+
+export const getWorldsGroups = cache(async (event: string): Promise<WorldsInitializer> => {
+  const section = await getSection(`${event}/Group_Stage`, 'Results');
+  const subSections = section.children();
+  if (!subSections || !Array.isArray(subSections))
+    throw new Error('Failed to get groups');
+
+  const teamKeyMatchups = subSections.flatMap(s => (s.templates(MATCH) as WTFTemplate<Match>[]))
+    .map(m => m.json());
+  const [teamKeys, teamScores] = _.unzip(subSections.flatMap(s =>
+    (s.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[])
+  )
+    .map(m => m.json()).map(m => [m.key, m.score])) as [string[], (number | null)[]];
+  const teams = await getTeamsFromKeys(teamKeys);
+  const teamsDict = _.zipObject(teamKeys, teams);
+  const scoresDict = _.zipObject(teamKeys, teamScores);
+
+  const matchups = teamKeyMatchups.map(m => [
+    m.opponent1 ? teamsDict[m.opponent1.key] : null,
+    m.opponent2 ? teamsDict[m.opponent2.key] : null,
+  ] as PartialMatchup);
+  const matchScores = teamKeyMatchups.map(m => [
+    m.opponent1 ? scoresDict[m.opponent1.key] : null,
+    m.opponent2 ? scoresDict[m.opponent2.key] : null,
+  ] as MatchScore);
+
+  return { matchups, matchScores };
 });
 
 async function getSection(event: string, sectionName: string): Promise<WTFSection> {
@@ -105,8 +141,8 @@ function extendTemplates(_models: any, templates: any): void {
   templates.match = (tmpl: string, list: object[], parse: (tmpl: string) => any) => {
     let obj = parse(tmpl);
     const parsed = {
-      opponent1: JSON.parse(obj.opponent1),
-      opponent2: JSON.parse(obj.opponent2),
+      opponent1: obj.opponent1 && JSON.parse(obj.opponent1),
+      opponent2: obj.opponent2 && JSON.parse(obj.opponent2),
       template: MATCH,
     }
     list.push(parsed);

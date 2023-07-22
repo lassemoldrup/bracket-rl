@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getWildcard } from 'libs/liquipedia';
+import { getWildcard, getWorldsGroups } from 'libs/liquipedia';
 import Worlds from 'components/formats/worlds';
 
 export default async function WorldsEvent({
@@ -15,7 +15,12 @@ export default async function WorldsEvent({
     // TODO: Throw 404 somehow
     throw new Error('Unsupported worlds season');
 
+  const worldsProps = {
+    wildcardInit: await getWildcard(event_string),
+    mainInit: await getWorldsGroups(event_string),
+  };
+
   return (
-    <Worlds swissInit={await getWildcard(event_string)} />
+    <Worlds {...worldsProps} />
   );
 }

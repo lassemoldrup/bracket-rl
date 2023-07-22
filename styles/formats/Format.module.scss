@@ -47,6 +47,8 @@ $team-height: 25px;
   cursor: pointer;
   caret-color: transparent;
   user-select: none;
+  appearance: none;
+  color: inherit;
   background: $bg-color-light;
   text-align: center;
   display: flex;
@@ -55,7 +57,7 @@ $team-height: 25px;
   line-height: 1em;
   font-size: 12pt;
 
-  &.disabled {
+  &[disabled] {
     cursor: default;
   }
 
