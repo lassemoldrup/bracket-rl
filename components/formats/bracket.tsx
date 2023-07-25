@@ -22,9 +22,11 @@ export const Column = forwardRef(function (
   const refs = _.range(matches.length - 1).map((_i) => useRef(null));
 
   return (
-    <>
+    <div className={styles.column}>
       <div className={styles['column-header']}>{title}</div>
-      <div className={classNames(styles.column, styles['match-column'])}>
+      <div
+        className={classNames(styles['inner-column'], styles['match-column'])}
+      >
         {matches.map((node, i) => (
           <Match
             node={node}
@@ -35,7 +37,7 @@ export const Column = forwardRef(function (
           />
         ))}
       </div>
-    </>
+    </div>
   );
 });
 
@@ -71,16 +73,14 @@ export function BracketLinesColumn({
   count: number;
   isStraight?: boolean;
 }) {
+  const className = classNames(
+    styles['inner-column'],
+    styles['bracket-lines-column']
+  );
   return (
-    <>
-      {/* Title stand in */}
-      <div></div>
-      <div
-        className={classNames(styles.column, styles['bracket-lines-column'])}
-      >
-        <InnerBracketLinesColumn count={count} isStraight={isStraight} />
-      </div>
-    </>
+    <div className={className}>
+      <InnerBracketLinesColumn count={count} isStraight={isStraight} />
+    </div>
   );
 }
 

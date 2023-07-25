@@ -150,8 +150,6 @@ export const DoubleElimColumn = forwardRef(function (
         title={upperTitle}
         {...upperProps}
       />
-      {/* Gutter between upper and lower bracket */}
-      <div></div>
       <DoubleElimInnerColumn
         matches={lower}
         title={lowerTitle}
@@ -198,8 +196,6 @@ export function DoubleElimBracketLinesColumn({
   return (
     <div className={styles['double-elim-column']}>
       <BracketLinesColumn count={upperCount} isStraight={upperIsStraight} />
-      {/* Gutter between upper and lower bracket */}
-      <div></div>
       <BracketLinesColumn count={lowerCount} isStraight={lowerIsStraight} />
     </div>
   );

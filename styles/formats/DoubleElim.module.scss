@@ -2,9 +2,10 @@
 @use 'Bracket.module' as bracket;
 @use 'Format.module' as format;
 
-$match-height: 2 * format.$team-height + 1px;
-$upper-bracket-height: $match-height * 8 + 15px * 8;
-$lower-bracket-height: $upper-bracket-height / 2;
+$upper-bracket-height: bracket.$header-height + 8 *
+  (format.$match-height + 15px);
+$lower-bracket-height: ($upper-bracket-height + bracket.$header-height) / 2;
+$vertical-gap: 20px;
 
 .double-elim {
   display: flex;
@@ -22,7 +23,8 @@ $lower-bracket-height: $upper-bracket-height / 2;
 .double-elim-column {
   min-width: bracket.$horizontal-gap;
   display: grid;
-  grid-template-rows: bracket.$header-height $upper-bracket-height 20px bracket.$header-height $lower-bracket-height;
+  row-gap: $vertical-gap;
+  grid-template-rows: $upper-bracket-height $lower-bracket-height;
 }
 
 .grand-final-column {
@@ -35,10 +37,9 @@ $lower-bracket-height: $upper-bracket-height / 2;
 
 .grand-final-match {
   position: absolute;
-  /* (40px + ub / 2 + 40px + ub + 20px + 40px + lb / 2) / 2 */
   top: (
-      $upper-bracket-height * 1.5 + bracket.$header-height * 3 + 20px +
-        $lower-bracket-height / 2
+      1.5 * $upper-bracket-height + $vertical-gap + $lower-bracket-height / 2 +
+        bracket.$header-height
     ) / 2;
   transform: translateY(-50%);
 }
@@ -47,6 +48,6 @@ $lower-bracket-height: $upper-bracket-height / 2;
   display: flex;
   flex-direction: column;
   width: bracket.$horizontal-gap;
-  margin-top: bracket.$header-height + $upper-bracket-height / 2 - 0.5px;
-  margin-bottom: $lower-bracket-height / 2 - 0.5px;
+  margin-top: (bracket.$header-height + $upper-bracket-height) / 2 - 0.5px;
+  margin-bottom: ($lower-bracket-height - bracket.$header-height) / 2 - 0.5px;
 }

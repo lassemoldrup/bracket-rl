@@ -7,7 +7,13 @@ $match-width: 200px;
 .column {
   display: flex;
   flex-direction: column;
+}
+
+.inner-column {
+  display: flex;
+  flex-direction: column;
   justify-content: space-around;
+  flex-grow: 1;
 }
 
 .match-column {
@@ -16,11 +22,13 @@ $match-width: 200px;
 
 .bracket-lines-column {
   width: 100%;
+  padding-top: $header-height;
 }
 
 .column-header {
   width: 100%;
-  height: 2rem;
+  height: 2em;
+  margin-bottom: calc($header-height - 2em);
   background: $bg-color-lighter;
   line-height: 1em;
   font-size: 1rem;

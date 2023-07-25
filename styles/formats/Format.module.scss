@@ -1,6 +1,7 @@
 @use '../vars' as *;
 
 $team-height: 25px;
+$match-height: 2 * $team-height + 1px;
 
 .team-container {
   height: $team-height;

@@ -13,7 +13,6 @@ import {
 import Controls from 'components/controls';
 import { DoubleElimBracketLinesColumn, DoubleElimColumn } from './doubleElim';
 import styles from 'styles/formats/Worlds.module.scss';
-import doubleElimStyles from 'styles/formats/DoubleElim.module.scss';
 import { BracketLinesColumn, Column } from './bracket';
 
 export default function Worlds({
@@ -70,7 +69,7 @@ const Group = forwardRef(function (
 ) {
   const semisRef = useRef(null);
   return (
-    <div className={doubleElimStyles['double-elim']}>
+    <div className={styles.group}>
       <DoubleElimColumn
         upper={group.upperQuarters}
         lower={group.lowerQuarters}
