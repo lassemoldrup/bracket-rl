@@ -1,6 +1,13 @@
-import assert from "assert";
-import _ from "lodash";
-import { Team, SwissInitializer, Matchup, WinLossRecord, TeamSlot, TeamMatch } from "../types";
+import assert from 'assert';
+import _ from 'lodash';
+import {
+  Team,
+  SwissInitializer,
+  Matchup,
+  WinLossRecord,
+  TeamSlot,
+  TeamMatch,
+} from '../types';
 
 export class SwissFormat {
   initialSeeding: Team[];
@@ -14,32 +21,38 @@ export class SwissFormat {
   constructor({ teams, matchups, matchScores, winsNeeded }: SwissInitializer) {
     this.initialSeeding = teams;
     const layout = [[8], [4, 4], [2, 4, 2], [3, 3], [3]];
-    this.rounds = layout.map((r, i) => r.map(n => new SwissMatchList(this, n, i, winsNeeded)));
-    const firstRoundMatchups = matchups.slice(0, 8).map(m => [teams[m[0]], teams[m[1]]] as Matchup);
+    this.rounds = layout.map((r, i) =>
+      r.map((n) => new SwissMatchList(this, n, i, winsNeeded))
+    );
+    const firstRoundMatchups = matchups
+      .slice(0, 8)
+      .map((m) => [teams[m[0]], teams[m[1]]] as Matchup);
     this.rounds[0][0].setMatchups(firstRoundMatchups);
 
     const matches = this.matches;
     for (const [matchup, scores] of _.zip(matchups, matchScores)) {
-      if (!matchup || !scores)
-        break;
+      if (!matchup || !scores) break;
       const actualMatchup = [teams[matchup[0]], teams[matchup[1]]];
-      const match = matches.find(m => _.isEqual(m.slots.map(s => s.team), actualMatchup));
+      const match = matches.find((m) =>
+        _.isEqual(
+          m.slots.map((s) => s.team),
+          actualMatchup
+        )
+      );
       if (!match)
         throw new Error(
           `Matchup ${actualMatchup[0].name} vs ${actualMatchup[1].name} not in generated matches`
         );
-      for (let i = 0; i < 2; i++)
-        match.slots[i].score = scores[i];
+      for (let i = 0; i < 2; i++) match.slots[i].score = scores[i];
     }
   }
 
   get matches(): SwissMatch[] {
-    return this.rounds.flatMap(r => r.flatMap(mL => mL.matches));
+    return this.rounds.flatMap((r) => r.flatMap((mL) => mL.matches));
   }
 
   get winners(): Team[] | undefined {
-    if (!this.isDone())
-      return undefined;
+    if (!this.isDone()) return undefined;
     let winners: Team[] = [];
     for (let i = 2; i < 5; i++)
       winners = winners.concat(this.rounds[i][0].winners as Team[]);
@@ -47,7 +60,7 @@ export class SwissFormat {
   }
 
   isDone(round: number = 4): boolean {
-    return this.rounds[round].every(mL => mL.isDone());
+    return this.rounds[round].every((mL) => mL.isDone());
   }
 
   propagate(round: number) {
@@ -59,27 +72,28 @@ export class SwissFormat {
           nextRound[i].setMatchups(matchups);
         }
       } else
-        for (let i = 0; i < nextRound.length; i++)
-          nextRound[i].clearTeams();
+        for (let i = 0; i < nextRound.length; i++) nextRound[i].clearTeams();
       this.propagate(round + 1);
     }
   }
 
   getMatchupsForMatchList(round: number, list: number): Matchup[] {
-    const teams = this.rounds[0][0].matches.flatMap(m => m.slots.map(s => s.team)) as Team[];
+    const teams = this.rounds[0][0].matches.flatMap((m) =>
+      m.slots.map((s) => s.team)
+    ) as Team[];
 
     // Calculate the win/loss record and game difference up until this round
-    const winLoss = _.fromPairs(teams.map(t => [t.name, { win: 0, loss: 0 }]));
-    const gameDiff = _.fromPairs(teams.map(t => [t.name, 0]));
+    const winLoss = _.fromPairs(
+      teams.map((t) => [t.name, { win: 0, loss: 0 }])
+    );
+    const gameDiff = _.fromPairs(teams.map((t) => [t.name, 0]));
     for (let i = 0; i < round; i++) {
       for (const list of this.rounds[i]) {
         for (const matchup of list.matches) {
-          for (const slot of matchup.slots.filter(s => s.team)) {
+          for (const slot of matchup.slots.filter((s) => s.team)) {
             const name = (slot.team as Team).name;
-            if (slot.hasWon())
-              winLoss[name].win++;
-            else
-              winLoss[name].loss++;
+            if (slot.hasWon()) winLoss[name].win++;
+            else winLoss[name].loss++;
             gameDiff[name] += (slot.score || 0) - (slot.getOther().score || 0);
           }
         }
@@ -87,49 +101,54 @@ export class SwissFormat {
     }
 
     const record = getRecordForMatchList(round, list);
-    let matchListTeams = teams.filter(t => _.isEqual(winLoss[t.name], record));
+    let matchListTeams = teams.filter((t) =>
+      _.isEqual(winLoss[t.name], record)
+    );
 
     // The least significant seeding rule is sorting by initial seed
-    matchListTeams = _.sortBy(matchListTeams, t => this.initialSeeding.indexOf(t));
+    matchListTeams = _.sortBy(matchListTeams, (t) =>
+      this.initialSeeding.indexOf(t)
+    );
 
     // The second most significant seeding rule is game difference
-    matchListTeams = _.sortBy(matchListTeams, t => -gameDiff[t.name]);
+    matchListTeams = _.sortBy(matchListTeams, (t) => -gameDiff[t.name]);
 
     // Most significant is if we came from the upper or lower round: if we lost, we have higher seed
     if (round >= 3 || (round == 2 && list == 1)) {
-      const prevRoundSlots = this.rounds[round - 1]
-        .flatMap(mL => mL.matches.flatMap(m => m.slots));
-      matchListTeams = _.sortBy(matchListTeams, t =>
-        (prevRoundSlots.find(s => s.team === t) as SwissSlot).hasWon()
+      const prevRoundSlots = this.rounds[round - 1].flatMap((mL) =>
+        mL.matches.flatMap((m) => m.slots)
+      );
+      matchListTeams = _.sortBy(matchListTeams, (t) =>
+        (prevRoundSlots.find((s) => s.team === t) as SwissSlot).hasWon()
       );
     }
 
     // Construct the matchups
     const matchups = [];
-    const previvousMatches = _.flattenDeep(this.rounds.slice(0, round).map(r => r.map(mL => mL.matches)))
-      .filter(m => m.slots[0].team && m.slots[1].team);
+    const previvousMatches = _.flattenDeep(
+      this.rounds.slice(0, round).map((r) => r.map((mL) => mL.matches))
+    ).filter((m) => m.slots[0].team && m.slots[1].team);
     const previvousMatchups = _.mapValues(
-      _.groupBy(previvousMatches, m => (m.slots[0].team as Team).name),
-      mL => mL.map(m => m.slots[1].team as Team),
+      _.groupBy(previvousMatches, (m) => (m.slots[0].team as Team).name),
+      (mL) => mL.map((m) => m.slots[1].team as Team)
     );
 
     // Mark teams as undefined as they are chosen
     const sortedTeams = matchListTeams as (Team | undefined)[];
     for (let i = 0; i < matchListTeams.length; i++) {
       const team = matchListTeams[i];
-      if (!team)
-        continue;
+      if (!team) continue;
 
       // Find opponent: try to avoid previvous matchups
-      let j: number
+      let j: number;
       let opponent: Team | undefined;
       for (j = matchListTeams.length - 1; j >= 0; j--) {
         opponent = matchListTeams[j];
         if (
-          !opponent
-          || opponent === team
-          || previvousMatchups[team.name]?.includes(opponent)
-          || previvousMatchups[opponent.name]?.includes(team)
+          !opponent ||
+          opponent === team ||
+          previvousMatchups[team.name]?.includes(opponent) ||
+          previvousMatchups[opponent.name]?.includes(team)
         ) {
           opponent = undefined;
           continue;
@@ -141,8 +160,7 @@ export class SwissFormat {
       if (!opponent) {
         for (j = matchListTeams.length - 1; j >= 0; j--) {
           opponent = matchListTeams[j];
-          if (!opponent || opponent === team)
-            continue;
+          if (!opponent || opponent === team) continue;
           break;
         }
       }
@@ -159,16 +177,25 @@ export class SwissFormat {
 export class SwissMatchList {
   format: SwissFormat;
   matches: SwissMatch[];
-  round: number
+  round: number;
 
-  constructor(format: SwissFormat, numMatches: number, round: number, winsNeeded: number) {
+  constructor(
+    format: SwissFormat,
+    numMatches: number,
+    round: number,
+    winsNeeded: number
+  ) {
     this.format = format;
-    this.matches = _.range(numMatches).map(_ => new SwissMatch(this, winsNeeded));
+    this.matches = _.range(numMatches).map(
+      (_) => new SwissMatch(this, winsNeeded)
+    );
     this.round = round;
   }
 
   get winners(): Team[] | undefined {
-    return this.isDone() ? this.matches.map(m => m.winner) as Team[] : undefined;
+    return this.isDone()
+      ? (this.matches.map((m) => m.winner) as Team[])
+      : undefined;
   }
 
   setMatchups(matchups: Matchup[]) {
@@ -181,12 +208,13 @@ export class SwissMatchList {
 
   clearTeams() {
     for (const match of this.matches)
-      for (let i = 0; i < 2; i++)
-        match.slots[i].team = null;
+      for (let i = 0; i < 2; i++) match.slots[i].team = null;
   }
 
   isDone(): boolean {
-    return this.matches.every(m => m.winner && m.slots[0].score !== null && m.slots[1].score !== null);
+    return this.matches.every(
+      (m) => m.winner && m.slots[0].score !== null && m.slots[1].score !== null
+    );
   }
 
   propagate() {
@@ -200,13 +228,15 @@ export class SwissMatch implements TeamMatch {
 
   constructor(matchList: SwissMatchList, winsNeeded: number) {
     this.matchList = matchList;
-    this.slots = [new SwissSlot(this, winsNeeded), new SwissSlot(this, winsNeeded)];
+    this.slots = [
+      new SwissSlot(this, winsNeeded),
+      new SwissSlot(this, winsNeeded),
+    ];
   }
 
   get winner(): Team | undefined {
     for (let i = 0; i < 2; i++)
-      if (this.slots[i].hasWon())
-        return this.slots[i].team || undefined;
+      if (this.slots[i].hasWon()) return this.slots[i].team || undefined;
     return undefined;
   }
 
@@ -231,10 +261,8 @@ export class SwissSlot implements TeamSlot {
   }
 
   set score(value: number | null) {
-    if (value && value > this.winsNeeded)
-      value = this.winsNeeded;
-    if (this.#score === value)
-      return;
+    if (value && value > this.winsNeeded) value = this.winsNeeded;
+    if (this.#score === value) return;
 
     if (value === this.winsNeeded && this.getOther().hasWon())
       this.getOther().#score = 0;
@@ -257,22 +285,13 @@ export class SwissSlot implements TeamSlot {
 }
 
 function getRecordForMatchList(round: number, list: number): WinLossRecord {
-  if (round === 0 && list === 0)
-    return { win: 0, loss: 0 };
-  else if (round === 1 && list === 0)
-    return { win: 1, loss: 0 };
-  else if (round === 1 && list === 1)
-    return { win: 0, loss: 1 };
-  else if (round === 2 && list === 0)
-    return { win: 2, loss: 0 };
-  else if (round === 2 && list === 1)
-    return { win: 1, loss: 1 };
-  else if (round === 2 && list === 2)
-    return { win: 0, loss: 2 };
-  else if (round === 3 && list === 0)
-    return { win: 2, loss: 1 };
-  else if (round === 3 && list === 1)
-    return { win: 1, loss: 2 };
-  else
-    return { win: 2, loss: 2 };
+  if (round === 0 && list === 0) return { win: 0, loss: 0 };
+  else if (round === 1 && list === 0) return { win: 1, loss: 0 };
+  else if (round === 1 && list === 1) return { win: 0, loss: 1 };
+  else if (round === 2 && list === 0) return { win: 2, loss: 0 };
+  else if (round === 2 && list === 1) return { win: 1, loss: 1 };
+  else if (round === 2 && list === 2) return { win: 0, loss: 2 };
+  else if (round === 3 && list === 0) return { win: 2, loss: 1 };
+  else if (round === 3 && list === 1) return { win: 1, loss: 2 };
+  else return { win: 2, loss: 2 };
 }

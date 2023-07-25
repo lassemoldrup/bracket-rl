@@ -10,8 +10,8 @@ export default function Controls({
   formatRef,
   clearFormat,
 }: {
-  formatRef: React.RefObject<HTMLElement>,
-  clearFormat: () => void,
+  formatRef: React.RefObject<HTMLElement>;
+  clearFormat: () => void;
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -37,22 +37,39 @@ export default function Controls({
         scale: '98%',
       },
     });
-    if (blob)
-      FileSaver.saveAs(blob, 'bracket.png');
+    if (blob) FileSaver.saveAs(blob, 'bracket.png');
 
     setIsDownloading(false);
   };
 
   return (
     <div className={styles.controls}>
-      <button onClick={captureBracket} disabled={isDownloading}
-        style={{ opacity: isDownloading ? 0 : 1, }}>
-        <Image src='/download-image-icon.svg' width={29} height={30} alt='Export PNG image.' />
+      <button
+        onClick={captureBracket}
+        disabled={isDownloading}
+        style={{ opacity: isDownloading ? 0 : 1 }}
+      >
+        <Image
+          src="/download-image-icon.svg"
+          width={29}
+          height={30}
+          alt="Export PNG image."
+        />
       </button>
-      <div className={styles.spinner} style={{ opacity: isDownloading ? 1 : 0 }}>
-        <Image src='/wait-loader-icon.svg' width={30} height={30} alt='Downloading image...' />
+      <div
+        className={styles.spinner}
+        style={{ opacity: isDownloading ? 1 : 0 }}
+      >
+        <Image
+          src="/wait-loader-icon.svg"
+          width={30}
+          height={30}
+          alt="Downloading image..."
+        />
       </div>
-      <button onClick={clearFormat} disabled={isDownloading}>Clear</button>
+      <button onClick={clearFormat} disabled={isDownloading}>
+        Clear
+      </button>
     </div>
   );
 }

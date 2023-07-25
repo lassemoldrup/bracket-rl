@@ -6,24 +6,23 @@ export const metadata: Metadata = {
   title: 'Rocket League Bracket',
   icons: '/favicon.ico',
   description: 'Rocket Leauge Esports bracket prediction tool',
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body>
         <div className={styles.container}>
-          <main className={styles.content}>
-            {children}
-          </main >
+          <main className={styles.content}>{children}</main>
           <footer className={styles.footer}>
-            Bracket data and images from <a href='https://liquipedia.net/rocketleague'>Liquipedia</a>.
+            Bracket data and images from{' '}
+            <a href="https://liquipedia.net/rocketleague">Liquipedia</a>.
           </footer>
-        </div >
+        </div>
       </body>
     </html>
   );

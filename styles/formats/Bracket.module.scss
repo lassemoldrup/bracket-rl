@@ -42,7 +42,7 @@ $match-width: 200px;
   flex-grow: 2;
   flex-basis: 2px;
 
-  >* {
+  > * {
     flex-basis: 0;
     flex-grow: 1;
   }

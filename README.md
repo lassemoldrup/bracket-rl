@@ -1,12 +1,14 @@
 # bracket-rl
+
 Try it out: https://bracket-rl.vercel.app
 
 This is a tool for building prediction brackets for Rocket League esports tournaments.
 
 ## TODO List
+
 The below list is a non-exhaustive list over features that need to be implemented in order of priority.
 
-* Support for the Worlds format (Swiss into double elimination groups into single elimination):
+- Support for the Worlds format (Swiss into double elimination groups into single elimination):
   - Implement the rules for the different stages.
     - ~~Swiss~~
     - Groups
@@ -19,10 +21,10 @@ The below list is a non-exhaustive list over features that need to be implemente
     - Swiss
     - Groups
     - Single elim.
-* ~~"Live" updates: New data should be pulled every minute for live events.~~
-* ~~QOL improvements.~~
-* Eslint and prettier
-* Support for multiple events, e.g. regionals for all regions.
+- ~~"Live" updates: New data should be pulled every minute for live events.~~
+- ~~QOL improvements.~~
+- Eslint and prettier
+- Support for multiple events, e.g. regionals for all regions.
   - ~~Backend~~
   - UI
-* Better mobile UI.
+- Better mobile UI.

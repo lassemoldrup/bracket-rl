@@ -4,11 +4,9 @@ import { getWildcard, getWorldsGroups } from 'libs/liquipedia';
 import Worlds from 'components/formats/worlds';
 
 export default async function WorldsEvent({
-  params: {
-    season,
-  },
+  params: { season },
 }: {
-  params: { season: string }
+  params: { season: string };
 }) {
   let event_string = `Rocket_League_Championship_Series/${season}`;
   if (season !== '2021-22' && season !== '2022-23')
@@ -20,7 +18,5 @@ export default async function WorldsEvent({
     mainInit: await getWorldsGroups(event_string),
   };
 
-  return (
-    <Worlds {...worldsProps} />
-  );
+  return <Worlds {...worldsProps} />;
 }

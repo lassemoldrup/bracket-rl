@@ -36,7 +36,10 @@ $lower-bracket-height: $upper-bracket-height / 2;
 .grand-final-match {
   position: absolute;
   /* (40px + ub / 2 + 40px + ub + 20px + 40px + lb / 2) / 2 */
-  top: ($upper-bracket-height * 1.5 + bracket.$header-height * 3 + 20px + $lower-bracket-height / 2) / 2;
+  top: (
+      $upper-bracket-height * 1.5 + bracket.$header-height * 3 + 20px +
+        $lower-bracket-height / 2
+    ) / 2;
   transform: translateY(-50%);
 }
 

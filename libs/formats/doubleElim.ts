@@ -1,6 +1,6 @@
-import { BracketInitializer, Matchup } from "libs/types";
-import _ from "lodash";
-import { BracketNode } from "./bracket";
+import { BracketInitializer, Matchup } from 'libs/types';
+import _ from 'lodash';
+import { BracketNode } from './bracket';
 
 export class DoubleElimBracket {
   upperR1: BracketNode[];
@@ -18,24 +18,47 @@ export class DoubleElimBracket {
   constructor({ matchups, matchScores }: BracketInitializer) {
     this.lowerFinal = new BracketNode(4, this.grandFinal.slots[1]);
     this.lowerSemi = new BracketNode(4, this.lowerFinal.slots[1]);
-    this.lowerQuarters = [0, 1].map(i => new BracketNode(4, this.lowerSemi.slots[i]));
-    this.lowerR3 = [0, 1].map(i => new BracketNode(3, this.lowerQuarters[i].slots[1]));
-    this.lowerR2 = [0, 1].flatMap(i => [0, 1].map(j => new BracketNode(3, this.lowerR3[i].slots[j])));
-    this.lowerR1 = _.range(4).map(i => new BracketNode(3, this.lowerR2[i].slots[1]));
-    this.upperFinal = new BracketNode(4, this.grandFinal.slots[0], this.lowerFinal.slots[0]);
-    this.upperSemis = [0, 1].map(i =>
-      new BracketNode(4, this.upperFinal.slots[i], this.lowerQuarters[i].slots[0])
+    this.lowerQuarters = [0, 1].map(
+      (i) => new BracketNode(4, this.lowerSemi.slots[i])
     );
-    this.upperQuarters = _.range(4).map(i =>
-      new BracketNode(3, this.upperSemis[i >> 1].slots[i % 2], this.lowerR2[3 - i].slots[0])
+    this.lowerR3 = [0, 1].map(
+      (i) => new BracketNode(3, this.lowerQuarters[i].slots[1])
     );
-    this.upperR1 = matchups.map((teams, i) =>
-      new BracketNode(
-        3,
-        this.upperQuarters[i >> 1].slots[i % 2],
-        this.lowerR1[i >> 1].slots[i % 2],
-        teams as Matchup
-      )
+    this.lowerR2 = [0, 1].flatMap((i) =>
+      [0, 1].map((j) => new BracketNode(3, this.lowerR3[i].slots[j]))
+    );
+    this.lowerR1 = _.range(4).map(
+      (i) => new BracketNode(3, this.lowerR2[i].slots[1])
+    );
+    this.upperFinal = new BracketNode(
+      4,
+      this.grandFinal.slots[0],
+      this.lowerFinal.slots[0]
+    );
+    this.upperSemis = [0, 1].map(
+      (i) =>
+        new BracketNode(
+          4,
+          this.upperFinal.slots[i],
+          this.lowerQuarters[i].slots[0]
+        )
+    );
+    this.upperQuarters = _.range(4).map(
+      (i) =>
+        new BracketNode(
+          3,
+          this.upperSemis[i >> 1].slots[i % 2],
+          this.lowerR2[3 - i].slots[0]
+        )
+    );
+    this.upperR1 = matchups.map(
+      (teams, i) =>
+        new BracketNode(
+          3,
+          this.upperQuarters[i >> 1].slots[i % 2],
+          this.lowerR1[i >> 1].slots[i % 2],
+          teams as Matchup
+        )
     );
 
     const matchOrder = [

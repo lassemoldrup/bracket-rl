@@ -5,14 +5,17 @@ export class BracketNode implements TeamMatch {
   winSlot: BracketSlot | null;
   lossSlot: BracketSlot | null;
   bracketReset: boolean;
-  slots: [BracketSlot, BracketSlot] = [new BracketSlot(this), new BracketSlot(this)];
+  slots: [BracketSlot, BracketSlot] = [
+    new BracketSlot(this),
+    new BracketSlot(this),
+  ];
 
   constructor(
     winsNeeded: number,
     winSlot: BracketSlot | null = null,
     lossSlot: BracketSlot | null = null,
     matchup: PartialMatchup = [null, null],
-    bracketReset: boolean = false,
+    bracketReset: boolean = false
   ) {
     this.winsNeeded = winsNeeded;
     this.winSlot = winSlot;
@@ -58,8 +61,7 @@ export class BracketSlot implements TeamSlot {
   }
 
   set score(value: number | null) {
-    if (value == this.#score)
-      return;
+    if (value == this.#score) return;
 
     if (value !== null) {
       value = Math.min(value, this.winsNeeded);
@@ -77,12 +79,9 @@ export class BracketSlot implements TeamSlot {
     }
 
     if (value === this.winsNeeded) {
-      if (this.getOther().score === value)
-        this.getOther().score = null;
-      if (this.match.winSlot)
-        this.match.winSlot.team = this.team;
-      if (this.match.lossSlot)
-        this.match.lossSlot.team = this.getOther().team;
+      if (this.getOther().score === value) this.getOther().score = null;
+      if (this.match.winSlot) this.match.winSlot.team = this.team;
+      if (this.match.lossSlot) this.match.lossSlot.team = this.getOther().team;
       this.#bracketResetScore = null;
       this.getOther().bracketResetScore = null;
     }
@@ -100,7 +99,10 @@ export class BracketSlot implements TeamSlot {
       value = Math.max(value, 0);
     }
 
-    if (value === this.winsNeeded && this.getOther().bracketResetScore === value) {
+    if (
+      value === this.winsNeeded &&
+      this.getOther().bracketResetScore === value
+    ) {
       this.getOther().bracketResetScore = null;
     }
 
@@ -112,7 +114,10 @@ export class BracketSlot implements TeamSlot {
   }
 
   hasWon(): boolean {
-    if (this.match.bracketReset && this.match.slots[1].score === this.winsNeeded)
+    if (
+      this.match.bracketReset &&
+      this.match.slots[1].score === this.winsNeeded
+    )
       return this.#bracketResetScore === this.winsNeeded;
     return this.#score === this.winsNeeded;
   }
