@@ -13,7 +13,7 @@ export class DoubleElimBracket {
   lowerQuarters: BracketNode[];
   lowerSemi: BracketNode;
   lowerFinal: BracketNode;
-  grandFinal: BracketNode = new BracketNode(4, null, null, null, true);
+  grandFinal = new BracketNode(4, null, null, [null, null], true);
 
   constructor({ matchups, matchScores }: BracketInitializer) {
     this.lowerFinal = new BracketNode(4, this.grandFinal.slots[1]);

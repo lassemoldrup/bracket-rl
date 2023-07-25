@@ -1,4 +1,4 @@
-import { TeamMatch, Matchup, Team, TeamSlot } from '../types';
+import { TeamMatch, Matchup, Team, TeamSlot, PartialMatchup } from '../types';
 
 export class BracketNode implements TeamMatch {
   winsNeeded: number;
@@ -11,14 +11,14 @@ export class BracketNode implements TeamMatch {
     winsNeeded: number,
     winSlot: BracketSlot | null = null,
     lossSlot: BracketSlot | null = null,
-    teams: Matchup | null = null,
-    bracketReset: boolean = false
+    matchup: PartialMatchup = [null, null],
+    bracketReset: boolean = false,
   ) {
     this.winsNeeded = winsNeeded;
     this.winSlot = winSlot;
     this.lossSlot = lossSlot;
-    this.slots[0].team = teams && teams[0];
-    this.slots[1].team = teams && teams[1];
+    this.slots[0].team = matchup[0];
+    this.slots[1].team = matchup[1];
     this.bracketReset = bracketReset;
   }
 }

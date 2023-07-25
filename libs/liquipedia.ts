@@ -1,7 +1,7 @@
 import wtf from 'wtf_wikipedia';
 import _ from 'lodash';
 import { cache } from 'react';
-import fs from 'fs/promises';
+import eventOverrides from 'data/event-overrides.json';
 import {
   BracketInitializer,
   Matchup,
@@ -11,6 +11,7 @@ import {
   WorldsInitializer,
   PartialMatchup,
 } from './types';
+import assert from 'assert';
 
 const userAgent = `bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
 
@@ -63,8 +64,7 @@ export const getWildcard = cache(async (event: string): Promise<SwissInitializer
   if (!subSections || !Array.isArray(subSections))
     throw new Error('Failed to get rounds');
 
-  const rawOverrides = await fs.readFile('data/event-overrides.json', { encoding: 'utf8' });
-  const overrides = JSON.parse(rawOverrides) as EventOverrides;
+  const overrides = eventOverrides as EventOverrides;
   const teamKeys = overrides[event]?.seeding ||
     _.sortBy(getFirstNTeams(section.children('Round 1') as WTFSection, 16), (_, i) => i % 2);
 
@@ -84,24 +84,17 @@ export const getWorldsGroups = cache(async (event: string): Promise<WorldsInitia
   if (!subSections || !Array.isArray(subSections))
     throw new Error('Failed to get groups');
 
-  const teamKeyMatchups = subSections.flatMap(s => (s.templates(MATCH) as WTFTemplate<Match>[]))
+  const teamOpponentMatchups = subSections.flatMap(s => (s.templates(MATCH) as WTFTemplate<Match>[]))
     .map(m => m.json());
-  const [teamKeys, teamScores] = _.unzip(subSections.flatMap(s =>
-    (s.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[])
-  )
-    .map(m => m.json()).map(m => [m.key, m.score])) as [string[], (number | null)[]];
-  const teams = await getTeamsFromKeys(teamKeys);
-  const teamsDict = _.zipObject(teamKeys, teams);
-  const scoresDict = _.zipObject(teamKeys, teamScores);
 
-  const matchups = teamKeyMatchups.map(m => [
-    m.opponent1 ? teamsDict[m.opponent1.key] : null,
-    m.opponent2 ? teamsDict[m.opponent2.key] : null,
-  ] as PartialMatchup);
-  const matchScores = teamKeyMatchups.map(m => [
-    m.opponent1 ? scoresDict[m.opponent1.key] : null,
-    m.opponent2 ? scoresDict[m.opponent2.key] : null,
-  ] as MatchScore);
+  const teamKeys = teamOpponentMatchups.slice(0, 4).concat(teamOpponentMatchups.slice(10, 14))
+    .map(m => m.opponent1?.key);
+  assert(teamKeys.every(t => t));
+  const teams = await getTeamsFromKeys(teamKeys as string[]);
+  const matchups = teams.map(t => [t, null]) as [Team, null][];
+
+  const matchScores = teamOpponentMatchups
+    .map(m => [m.opponent1?.score ?? null, m.opponent2?.score ?? null]) as MatchScore[];
 
   return { matchups, matchScores };
 });

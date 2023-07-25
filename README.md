@@ -14,7 +14,6 @@ The below list is a non-exhaustive list over features that need to be implemente
   - Parsing of Liquipedia data for the event.
     - ~~Swiss~~
     - ~~Groups~~
-    - Single elim.
   - ~~Implement a tabbed UI to support different formats in the same event.~~
   - Implement UIs for the different formats.
     - Swiss

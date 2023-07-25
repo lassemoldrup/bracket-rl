@@ -52,7 +52,7 @@ export default function DoubleElim({
   </div>);
 }
 
-const DoubleElimColumn = forwardRef(({
+export const DoubleElimColumn = forwardRef(({
   upper,
   lower,
   upperTitle,
@@ -99,7 +99,7 @@ const DoubleElimInnerColumn = forwardRef(({
     <BracketLinesColumn count={matches as number} />;
 });
 
-function DoubleElimBracketLinesColumn({
+export function DoubleElimBracketLinesColumn({
   upperCount,
   lowerCount,
   upperIsStraight,
