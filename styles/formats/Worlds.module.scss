@@ -1,13 +1,27 @@
 .groups {
   display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  width: 200vw;
+  max-width: 1600px;
 }
 
 .group {
-  display: flex;
-  align-items: stretch;
-  font-size: 12pt;
+  padding: 20px 30px;
+}
+
+.group-title {
+  margin-bottom: 1em;
+}
+
+.upper-bracket {
+  margin-bottom: 20px;
 }
 
 .playoffs {
-  display: flex;
+  width: 100vw;
+  height: 100vh;
+  max-width: 1000px;
+  max-height: 500px;
+  padding: 20px;
 }

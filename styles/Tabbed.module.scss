@@ -1,10 +1,10 @@
 @use 'vars' as *;
 
-$tab-height: 32px;
+$tab-height: 40px;
 $tab-gap: 8px;
 
 .tabs-container {
-  margin-top: $tab-height + $tab-gap;
+  margin-top: $tab-height + 3 * $tab-gap;
 }
 
 .tabs {
@@ -16,10 +16,12 @@ $tab-gap: 8px;
   left: 0;
   size: 20pt;
   font-weight: bold;
+  font-size: 1.2rem;
   line-height: 0;
   user-select: none;
   background: $main-bg-color;
   box-shadow: 0 1px 4px darken($main-bg-color, 2%);
+  z-index: 10;
 }
 
 .tab {

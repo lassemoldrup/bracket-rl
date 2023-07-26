@@ -31,6 +31,19 @@ export class WorldsFormat {
       for (let i = 0; i < 2; i++) match.slots[i].score = scores[i];
     }
   }
+
+  setWildcardTeams(teams: (Team | undefined)[]) {
+    assert(teams.length === 8);
+
+    this.groups[0].upperQuarters[0].slots[1].team = teams[7] ?? null;
+    this.groups[0].upperQuarters[1].slots[1].team = teams[1] ?? null;
+    this.groups[0].upperQuarters[2].slots[1].team = teams[4] ?? null;
+    this.groups[0].upperQuarters[3].slots[1].team = teams[2] ?? null;
+    this.groups[1].upperQuarters[0].slots[1].team = teams[6] ?? null;
+    this.groups[1].upperQuarters[1].slots[1].team = teams[0] ?? null;
+    this.groups[1].upperQuarters[2].slots[1].team = teams[5] ?? null;
+    this.groups[1].upperQuarters[3].slots[1].team = teams[3] ?? null;
+  }
 }
 
 export class WorldsGroup {
@@ -86,5 +99,11 @@ export class WorldsPlayoffsFormat {
     this.quarters = [0, 1].flatMap((i) =>
       [0, 1].map((j) => new BracketNode(4, this.semis[i].slots[j]))
     );
+  }
+
+  clear() {
+    const matches = [this.final, ...this.semis, ...this.quarters];
+    for (const match of matches)
+      for (let i = 0; i < 2; i++) match.slots[i].score = null;
   }
 }

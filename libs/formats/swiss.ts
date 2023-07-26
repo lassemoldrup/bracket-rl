@@ -22,7 +22,7 @@ export class SwissFormat {
     this.initialSeeding = teams;
     const layout = [[8], [4, 4], [2, 4, 2], [3, 3], [3]];
     this.rounds = layout.map((r, i) =>
-      r.map((n) => new SwissMatchList(this, n, i, winsNeeded))
+      r.map((n, j) => new SwissMatchList(this, n, i, j, winsNeeded))
     );
     const firstRoundMatchups = matchups
       .slice(0, 8)
@@ -51,11 +51,13 @@ export class SwissFormat {
     return this.rounds.flatMap((r) => r.flatMap((mL) => mL.matches));
   }
 
-  get winners(): Team[] | undefined {
-    if (!this.isDone()) return undefined;
-    let winners: Team[] = [];
+  get winners(): (Team | undefined)[] {
+    let winners: (Team | undefined)[] = [];
     for (let i = 2; i < 5; i++)
-      winners = winners.concat(this.rounds[i][0].winners as Team[]);
+      winners = winners.concat(
+        this.rounds[i][0].winners ||
+          this.rounds[i][0].matches.map((_) => undefined)
+      );
     return winners;
   }
 
@@ -77,10 +79,25 @@ export class SwissFormat {
     }
   }
 
+  getGameDiffs(round?: number): { [teamName: string]: number } {
+    if (!round) round = 4;
+    const gameDiff = _.fromPairs(this.initialSeeding.map((t) => [t.name, 0]));
+    for (let i = 0; i <= round; i++) {
+      for (const list of this.rounds[i]) {
+        for (const matchup of list.matches) {
+          for (const slot of matchup.slots.filter((s) => s.team)) {
+            const name = (slot.team as Team).name;
+            gameDiff[name] += (slot.score || 0) - (slot.getOther().score || 0);
+          }
+        }
+      }
+    }
+    return gameDiff;
+  }
+
+  // TODO: refactor
   getMatchupsForMatchList(round: number, list: number): Matchup[] {
-    const teams = this.rounds[0][0].matches.flatMap((m) =>
-      m.slots.map((s) => s.team)
-    ) as Team[];
+    const teams = this.initialSeeding;
 
     // Calculate the win/loss record and game difference up until this round
     const winLoss = _.fromPairs(
@@ -178,11 +195,13 @@ export class SwissMatchList {
   format: SwissFormat;
   matches: SwissMatch[];
   round: number;
+  list: number;
 
   constructor(
     format: SwissFormat,
     numMatches: number,
     round: number,
+    list: number,
     winsNeeded: number
   ) {
     this.format = format;
@@ -190,12 +209,21 @@ export class SwissMatchList {
       (_) => new SwissMatch(this, winsNeeded)
     );
     this.round = round;
+    this.list = list;
   }
 
   get winners(): Team[] | undefined {
-    return this.isDone()
-      ? (this.matches.map((m) => m.winner) as Team[])
-      : undefined;
+    if (!this.isDone()) return undefined;
+
+    const gameDiff = this.format.getGameDiffs(this.round);
+    let res = this.matches.map((m) => m.winner as Team);
+    res = _.sortBy(res, (t) => this.format.initialSeeding.indexOf(t));
+    res = _.sortBy(res, (t) => -gameDiff[t.name]);
+    return res;
+  }
+
+  get isQualification(): boolean {
+    return [2, 3, 4].includes(this.round) && this.list === 0;
   }
 
   setMatchups(matchups: Matchup[]) {
@@ -238,6 +266,10 @@ export class SwissMatch implements TeamMatch {
     for (let i = 0; i < 2; i++)
       if (this.slots[i].hasWon()) return this.slots[i].team || undefined;
     return undefined;
+  }
+
+  get isQualification(): boolean {
+    return this.matchList.isQualification;
   }
 
   propagate() {

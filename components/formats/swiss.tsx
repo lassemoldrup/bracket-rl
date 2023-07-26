@@ -1,37 +1,33 @@
 'use client';
 
 import { SwissFormat, SwissMatch, SwissMatchList } from 'libs/formats/swiss';
-import { SwissInitializer } from 'libs/types';
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useRef } from 'react';
 import styles from 'styles/formats/Swiss.module.scss';
-import Controls from 'components/controls';
 import { Vertical } from 'components/misc';
-import { FormatProps, ScoreRef, Team } from './format';
+import { FormatProps, ScoreRef, ScoredTeam } from './format';
 import _ from 'lodash';
 
-export default function Swiss({ init }: { init: SwissInitializer }) {
-  const [format, setFormat] = useState(new SwissFormat(init));
-  const clearFormat = () =>
-    setFormat(new SwissFormat({ ...init, matchScores: [] }));
-  const redrawFormat = () => setFormat({ ...format } as SwissFormat);
-  const formatRef = useRef(null);
+export default function Swiss({
+  format,
+  redrawFormat,
+}: {
+  format: SwissFormat;
+  redrawFormat: () => void;
+}) {
   const roundRefs = _.range(format.rounds.length).map((_m) => useRef(null));
 
   return (
-    <div>
-      <div ref={formatRef} className={styles.swiss}>
-        {format.rounds.map((r, i) => (
-          <Round
-            round={r}
-            name={`Round ${i + 1}`}
-            ref={roundRefs[i]}
-            nextRef={roundRefs[i + 1]}
-            redrawFormat={redrawFormat}
-            key={i}
-          />
-        ))}
-      </div>
-      <Controls formatRef={formatRef} clearFormat={clearFormat} />
+    <div className={styles.swiss}>
+      {format.rounds.map((r, i) => (
+        <Round
+          round={r}
+          name={`Round ${i + 1}`}
+          ref={roundRefs[i]}
+          nextRef={roundRefs[i + 1]}
+          redrawFormat={redrawFormat}
+          key={i}
+        />
+      ))}
     </div>
   );
 }
@@ -115,14 +111,23 @@ const Match = forwardRef(function (
 
   return (
     <div className={styles.match}>
-      <Team
+      <ScoredTeam
         slot={match.slots[0]}
+        big
+        qualification={match.isQualification}
         ref={ref}
         {...formatProps}
         nextRef={secondRef}
       />
       <Vertical />
-      <Team slot={match.slots[1]} reverse ref={secondRef} {...formatProps} />
+      <ScoredTeam
+        slot={match.slots[1]}
+        big
+        qualification={match.isQualification}
+        reverse
+        ref={secondRef}
+        {...formatProps}
+      />
     </div>
   );
 });

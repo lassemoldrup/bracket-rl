@@ -24,6 +24,12 @@ export class BracketNode implements TeamMatch {
     this.slots[1].team = matchup[1];
     this.bracketReset = bracketReset;
   }
+
+  get winner(): Team | undefined {
+    if (this.slots[0]?.hasWon()) return this.slots[0].team ?? undefined;
+    else if (this.slots[1]?.hasWon()) return this.slots[1].team ?? undefined;
+    return undefined;
+  }
 }
 
 export class BracketSlot implements TeamSlot {

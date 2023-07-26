@@ -1,8 +1,14 @@
 @use '../vars' as *;
+@use './Format.module' as format;
 
 $header-height: 40px;
 $horizontal-gap: 40px;
 $match-width: 200px;
+$match-gap: 15px;
+
+.bracket {
+  display: flex;
+}
 
 .column {
   display: flex;
@@ -16,12 +22,13 @@ $match-width: 200px;
   flex-grow: 1;
 }
 
-.match-column {
-  width: $match-width;
+.full-width-column {
+  flex-basis: $match-width + 2 * $horizontal-gap;
 }
 
 .bracket-lines-column {
-  width: 100%;
+  flex-grow: 1;
+  min-width: $horizontal-gap;
   padding-top: $header-height;
 }
 
@@ -41,6 +48,7 @@ $match-width: 200px;
   outline: 1px solid $border-color;
   border-radius: $border-radius;
   background: $bg-color-lighter;
+  margin: $match-gap / 2 0;
 }
 
 .bracket-lines {
@@ -70,4 +78,26 @@ $match-width: 200px;
 .bracket-end-gap {
   flex-grow: 1;
   flex-basis: 0;
+}
+
+.bracket-lines hr,
+.match hr,
+.bracket-lines-column hr {
+  border: none;
+  height: 1px;
+  background: $border-color;
+  margin: 0;
+}
+
+.qualified {
+  background: $bg-color-lighter;
+  height: format.$team-height-big;
+  width: $match-width;
+  border-radius: $border-radius;
+  outline: 1px solid $border-color;
+
+  &.has-team {
+    background: $bg-color-lighter-green;
+    outline: 2px solid $border-color-green;
+  }
 }

@@ -9,12 +9,21 @@ import styles from 'styles/Tabbed.module.scss';
 export default function Tabbed({
   children,
   tabNames,
+  start = 0,
+  onChange,
 }: {
   children: React.ReactNode[];
   tabNames: string[];
+  start?: number;
+  onChange?: (tab: number) => void;
 }) {
-  assert(tabNames.length === children.length);
-  const [tab, setTab] = useState(0);
+  assert(tabNames.length === children.length, 'Incorrect number of tab names');
+  const [tab, setTab] = useState(start);
+  const changeTab = (i: number) => {
+    if (i === tab) return;
+    setTab(i);
+    onChange && onChange(i);
+  };
 
   return (
     <div className={styles['tabs-container']}>
@@ -22,7 +31,7 @@ export default function Tabbed({
         {tabNames.map((name, i) => (
           <div
             className={classnames(styles.tab, { [styles.active]: i === tab })}
-            onClick={() => setTab(i)}
+            onClick={() => changeTab(i)}
             key={i}
           >
             {name}

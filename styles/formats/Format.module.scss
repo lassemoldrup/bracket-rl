@@ -1,11 +1,23 @@
 @use '../vars' as *;
 
 $team-height: 25px;
+$team-height-big: 30px;
 $match-height: 2 * $team-height + 1px;
 
 .team-container {
-  height: $team-height;
   display: flex;
+
+  &.qualified {
+    .team {
+      background: $bg-color-lighter-green;
+      outline: 2px solid $border-color-green;
+      z-index: 1;
+    }
+
+    .score {
+      background: $bg-color-light-green;
+    }
+  }
 
   &.reversed {
     flex-direction: row-reverse;
@@ -14,8 +26,19 @@ $match-height: 2 * $team-height + 1px;
 
 .team {
   width: 175px;
+  height: $team-height;
   display: flex;
   align-items: center;
+
+  &.big {
+    width: 200px;
+    height: $team-height-big;
+
+    .team-logo-container {
+      width: $team-height-big - 8px;
+      height: $team-height-big - 8px;
+    }
+  }
 
   img {
     max-width: 100%;
@@ -35,16 +58,16 @@ $match-height: 2 * $team-height + 1px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 5px;
-  width: 15px;
-  height: 15px;
+  margin: 0 6px 0 4px;
+  width: $team-height - 8px;
+  height: $team-height - 8px;
 }
 
 .score {
   flex-shrink: 0;
   border: 0;
   width: $team-height;
-  height: 100%;
+  height: $team-height;
   cursor: pointer;
   caret-color: transparent;
   user-select: none;
@@ -58,6 +81,12 @@ $match-height: 2 * $team-height + 1px;
   line-height: 1em;
   font-size: 12pt;
 
+  &.big {
+    width: $team-height-big;
+    height: $team-height-big;
+    font-size: 14pt;
+  }
+
   &[disabled] {
     cursor: default;
   }
@@ -70,4 +99,9 @@ $match-height: 2 * $team-height + 1px;
 
 .max-score {
   font-weight: bolder;
+}
+
+:export {
+  teamHeight: $team-height;
+  teamHeightBig: $team-height-big;
 }

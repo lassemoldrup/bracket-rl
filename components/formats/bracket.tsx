@@ -1,21 +1,34 @@
 import styles from 'styles/formats/Bracket.module.scss';
-import { range } from 'lodash';
 import { BracketNode } from 'libs/formats/bracket';
 import classNames from 'classnames';
-import { FormatProps, ScoreRef, Team } from './format';
+import { FormatProps, ScoreRef, ScoredTeam, Team } from './format';
 import { forwardRef, useRef } from 'react';
 import _ from 'lodash';
+import * as types from 'libs/types';
 
-// Column and Match export the ref of the first score input
+export function Bracket({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={classNames(styles.bracket, className)}>{children}</div>
+  );
+}
+
 export const Column = forwardRef(function (
   {
     matches,
     title,
+    bigMatches,
     nextRef,
     redrawFormat,
   }: {
     matches: BracketNode[];
     title: string;
+    bigMatches?: boolean;
   } & FormatProps,
   ref: ScoreRef
 ) {
@@ -24,12 +37,11 @@ export const Column = forwardRef(function (
   return (
     <div className={styles.column}>
       <div className={styles['column-header']}>{title}</div>
-      <div
-        className={classNames(styles['inner-column'], styles['match-column'])}
-      >
+      <div className={classNames(styles['inner-column'])}>
         {matches.map((node, i) => (
           <Match
             node={node}
+            big={bigMatches}
             ref={i === 0 ? ref : refs[i - 1]}
             nextRef={refs[i] ?? nextRef}
             redrawFormat={redrawFormat}
@@ -44,9 +56,11 @@ export const Column = forwardRef(function (
 export const Match = forwardRef(function (
   {
     node,
+    big,
     ...formatProps
   }: {
     node: BracketNode;
+    big?: boolean;
   } & FormatProps,
   ref: ScoreRef
 ) {
@@ -54,14 +68,20 @@ export const Match = forwardRef(function (
 
   return (
     <div className={styles.match}>
-      <Team
+      <ScoredTeam
         slot={node.slots[0]}
+        big={big}
         ref={ref}
         {...formatProps}
         nextRef={secondRef}
       />
       <hr />
-      <Team slot={node.slots[1]} ref={secondRef} {...formatProps} />
+      <ScoredTeam
+        slot={node.slots[1]}
+        big={big}
+        ref={secondRef}
+        {...formatProps}
+      />
     </div>
   );
 });
@@ -69,13 +89,18 @@ export const Match = forwardRef(function (
 export function BracketLinesColumn({
   count,
   isStraight,
+  fullWidth,
 }: {
   count: number;
   isStraight?: boolean;
+  fullWidth?: boolean;
 }) {
   const className = classNames(
     styles['inner-column'],
-    styles['bracket-lines-column']
+    styles['bracket-lines-column'],
+    {
+      [styles['full-width-column']]: fullWidth,
+    }
   );
   return (
     <div className={className}>
@@ -92,11 +117,11 @@ export function InnerBracketLinesColumn({
   isStraight?: boolean;
 }) {
   return isStraight ? (
-    range(count).map((i) => <hr key={i} />)
+    _.range(count).map((i) => <hr key={i} />)
   ) : (
     <>
       <div className={styles['bracket-end-gap']}></div>
-      {range(count).map((i) => (
+      {_.range(count).map((i) => (
         <BracketLines withGap={i < count - 1} key={i} />
       ))}
       <div className={styles['bracket-end-gap']}></div>
@@ -113,5 +138,34 @@ export function BracketLines({ withGap = false }: { withGap?: boolean }) {
       </div>
       {withGap && <div className={styles['bracket-gap']}></div>}
     </>
+  );
+}
+
+export function QualifiedColumn({
+  teams,
+  big,
+}: {
+  teams: (types.Team | null)[];
+  big?: boolean;
+}) {
+  return (
+    <div className={styles.column}>
+      <div className={styles['column-header']}>Qualified</div>
+      <div className={styles['inner-column']}>
+        {teams.map((team, i) => (
+          <Qualified team={team ?? undefined} big={big} key={i}></Qualified>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Qualified({ team, big }: { team?: types.Team; big?: boolean }) {
+  return (
+    <div
+      className={classNames(styles.qualified, { [styles['has-team']]: team })}
+    >
+      <Team team={team} hasWon big={big} />
+    </div>
   );
 }

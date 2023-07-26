@@ -41,88 +41,100 @@ interface WTFTemplate<T> {
   wikitext(): string;
 }
 
-export const getDoubleElim = cache(
-  async (event: string): Promise<BracketInitializer> => {
-    const section = await getSection(event, 'Results');
-    const teamKeys = getFirstNTeams(section, 16);
-    const teams = await getTeamsFromKeys(teamKeys);
-    const matchups = _.chunk(teams, 2) as Matchup[];
+export const getDoubleElim = cache(async function (
+  event: string
+): Promise<BracketInitializer> {
+  const section = await getSection(event, 'Results');
+  const teamKeys = getFirstNTeams(section, 16);
+  const teams = await getTeamsFromKeys(teamKeys);
+  const matchups = _.chunk(teams, 2) as Matchup[];
 
-    const matchScores = (section.templates(MATCH) as WTFTemplate<Match>[]).map(
-      (m) => {
-        const match = m.json();
-        return [
-          match.opponent1?.score ?? null,
-          match.opponent2?.score ?? null,
-        ] as MatchScore;
-      }
+  const matchScores = (section.templates(MATCH) as WTFTemplate<Match>[]).map(
+    (m) => {
+      const match = m.json();
+      return [
+        match.opponent1?.score ?? null,
+        match.opponent2?.score ?? null,
+      ] as MatchScore;
+    }
+  );
+
+  return { matchups, matchScores };
+});
+
+export const getWildcard = cache(async function (
+  event: string
+): Promise<SwissInitializer> {
+  const section = await getSection(`${event}/Wildcard`, 'Detailed Results');
+  const subSections = section.children();
+  if (!subSections || !Array.isArray(subSections))
+    throw new Error('Failed to get rounds');
+
+  const overrides = eventOverrides as EventOverrides;
+  const teamKeys =
+    overrides[event]?.seeding ||
+    _.sortBy(
+      getFirstNTeams(section.children('Round 1') as WTFSection, 16),
+      (_, i) => i % 2
     );
 
-    return { matchups, matchScores };
-  }
-);
+  const teams = await getTeamsFromKeys(teamKeys);
+  const matchTeams = (subSections as WTFSection[]).flatMap((r) =>
+    (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map((t) =>
+      t.json()
+    )
+  );
 
-export const getWildcard = cache(
-  async (event: string): Promise<SwissInitializer> => {
-    const section = await getSection(`${event}/Wildcard`, 'Detailed Results');
-    const subSections = section.children();
-    if (!subSections || !Array.isArray(subSections))
-      throw new Error('Failed to get rounds');
+  const matchups = _.chunk(
+    matchTeams.map((t) => teamKeys.indexOf(t.key)),
+    2
+  ) as [number, number][];
+  const matchScores = _.chunk(
+    matchTeams.map((t) => t.score),
+    2
+  ) as MatchScore[];
+  return { teams, matchups, matchScores, winsNeeded: 4 };
+});
 
-    const overrides = eventOverrides as EventOverrides;
-    const teamKeys =
-      overrides[event]?.seeding ||
-      _.sortBy(
-        getFirstNTeams(section.children('Round 1') as WTFSection, 16),
-        (_, i) => i % 2
-      );
+export const getWorldsMainEvent = cache(async function (
+  event: string
+): Promise<WorldsInitializer> {
+  const groupsSection = await getSection(`${event}/Group_Stage`, 'Results');
+  const subSections = groupsSection.children();
+  if (!subSections || !Array.isArray(subSections))
+    throw new Error('Failed to get groups');
 
-    const teams = await getTeamsFromKeys(teamKeys);
-    const matchTeams = (subSections as WTFSection[]).flatMap((r) =>
-      (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map((t) =>
-        t.json()
-      )
-    );
+  const teamOpponentMatchups = subSections
+    .flatMap((s) => s.templates(MATCH) as WTFTemplate<Match>[])
+    .map((m) => m.json());
 
-    const matchups = _.chunk(
-      matchTeams.map((t) => teamKeys.indexOf(t.key)),
-      2
-    ) as [number, number][];
-    const matchScores = _.chunk(
-      matchTeams.map((t) => t.score),
-      2
-    ) as MatchScore[];
-    return { teams, matchups, matchScores, winsNeeded: 4 };
-  }
-);
+  const teamKeys = teamOpponentMatchups
+    .slice(0, 4)
+    .concat(teamOpponentMatchups.slice(10, 14))
+    .map((m) => m.opponent1?.key);
+  assert(teamKeys.every((t) => t));
+  const teams = await getTeamsFromKeys(teamKeys as string[]);
+  const matchups = teams.map((t) => [t, null]) as [Team, null][];
 
-export const getWorldsGroups = cache(
-  async (event: string): Promise<WorldsInitializer> => {
-    const section = await getSection(`${event}/Group_Stage`, 'Results');
-    const subSections = section.children();
-    if (!subSections || !Array.isArray(subSections))
-      throw new Error('Failed to get groups');
+  const groupsScores = teamOpponentMatchups.map((m) => [
+    m.opponent1?.score ?? null,
+    m.opponent2?.score ?? null,
+  ]) as MatchScore[];
 
-    const teamOpponentMatchups = subSections
-      .flatMap((s) => s.templates(MATCH) as WTFTemplate<Match>[])
-      .map((m) => m.json());
-
-    const teamKeys = teamOpponentMatchups
-      .slice(0, 4)
-      .concat(teamOpponentMatchups.slice(10, 14))
-      .map((m) => m.opponent1?.key);
-    assert(teamKeys.every((t) => t));
-    const teams = await getTeamsFromKeys(teamKeys as string[]);
-    const matchups = teams.map((t) => [t, null]) as [Team, null][];
-
-    const matchScores = teamOpponentMatchups.map((m) => [
+  const playoffsSection = await getSection(`${event}/Playoffs`, 'Results');
+  const playoffsScores = (
+    playoffsSection.templates(MATCH) as WTFTemplate<Match>[]
+  )
+    .map((m) => m.json())
+    .map((m) => [
       m.opponent1?.score ?? null,
       m.opponent2?.score ?? null,
     ]) as MatchScore[];
 
-    return { matchups, matchScores };
-  }
-);
+  const matchScores = groupsScores.concat(playoffsScores);
+
+  return { matchups, matchScores };
+});
 
 async function getSection(
   event: string,
@@ -149,8 +161,9 @@ function extendTemplates(_models: any, templates: any): void {
     const obj = parse(tmpl);
     // Return a score of 100 if match was forfeit, this will get clamped to the match max
     let score: number | null = obj.score === 'W' ? 100 : parseInt(obj.score);
+    if (!obj.score) score = null;
     // if score is NaN i.e. 'FF'
-    if (score !== score) score = 0;
+    else if (score !== score) score = 0;
     const parsed = {
       key: obj.list[0].toLowerCase(),
       score,

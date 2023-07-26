@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { TeamSlot } from 'libs/types';
+import * as types from 'libs/types';
 import { ForwardedRef, KeyboardEvent, RefObject, forwardRef } from 'react';
 import styles from 'styles/formats/Format.module.scss';
 import { Vertical } from 'components/misc';
@@ -12,30 +12,36 @@ export interface FormatProps {
   redrawFormat(): void;
 }
 
-function TeamWithRef(
+function ScoredTeamWithRef(
   {
     slot,
+    qualification,
+    big,
     reverse,
     nextRef,
     redrawFormat,
   }: {
-    slot: TeamSlot;
+    slot: types.TeamSlot;
+    qualification?: boolean;
+    big?: boolean;
     reverse?: boolean;
   } & FormatProps,
   ref: ScoreRef
 ) {
   const getSetScoreHandler = (field: 'score' | 'bracketResetScore') => {
     return (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Tab') return;
       event.preventDefault();
 
       const keyNum = parseInt(event.key);
       if (event.key === 'Backspace') slot[field] = null;
-      // if (numKey is not NaN)
+      // if (keyNum is not NaN)
       else if (keyNum === keyNum) slot[field] = keyNum;
       else return;
 
       redrawFormat();
-      nextRef?.current?.focus();
+      if (nextRef) nextRef.current?.focus();
+      else (event.target as HTMLInputElement).blur();
     };
   };
 
@@ -44,34 +50,20 @@ function TeamWithRef(
 
   const teamContainerClassName = classNames(styles['team-container'], {
     [styles.reversed]: reverse ?? false,
+    [styles.qualified]: qualification && slot.hasWon(),
   });
   const scoreClassName = classNames(styles.score, {
+    [styles.big]: big ?? false,
     [styles['max-score']]: slot.score === slot.winsNeeded,
   });
   const bracketResetScoreClassName = classNames(styles.score, {
     [styles['max-score']]: slot.hasWon(),
   });
-  const teamNameClassName = classNames(styles['team-name'], {
-    [styles['max-score']]: slot.hasWon(),
-  });
 
   return (
     <div className={teamContainerClassName}>
-      <div className={styles.team}>
-        {slot.team && (
-          <>
-            <div className={styles['team-logo-container']}>
-              <Image
-                src={slot.team.image}
-                width={15}
-                height={15}
-                alt={slot.team.name + ' logo'}
-              />
-            </div>
-            <span className={teamNameClassName}>{slot.team.name}</span>
-          </>
-        )}
-      </div>
+      <Team team={slot.team ?? undefined} hasWon={slot.hasWon()} big={big} />
+
       <Vertical />
       <input
         className={scoreClassName}
@@ -98,4 +90,37 @@ function TeamWithRef(
   );
 }
 
-export const Team = forwardRef(TeamWithRef);
+export function Team({
+  team,
+  hasWon,
+  big,
+}: {
+  team?: types.Team;
+  hasWon?: boolean;
+  big?: boolean;
+}) {
+  const teamSize = parseInt(big ? styles.teamHeightBig : styles.teamHeight) - 8;
+  const teamNameClassName = classNames(styles['team-name'], {
+    [styles['max-score']]: hasWon,
+  });
+
+  return (
+    <div className={classNames(styles.team, { [styles.big]: big })}>
+      {team && (
+        <>
+          <div className={styles['team-logo-container']}>
+            <Image
+              src={team.image}
+              width={teamSize}
+              height={teamSize}
+              alt={team.name + ' logo'}
+            />
+          </div>
+          <span className={teamNameClassName}>{team.name}</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+export const ScoredTeam = forwardRef(ScoredTeamWithRef);

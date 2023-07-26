@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getWildcard, getWorldsGroups } from 'libs/liquipedia';
+import { getWildcard, getWorldsMainEvent } from 'libs/liquipedia';
 import Worlds from 'components/formats/worlds';
 
 export default async function WorldsEvent({
@@ -15,7 +15,7 @@ export default async function WorldsEvent({
 
   const worldsProps = {
     wildcardInit: await getWildcard(event_string),
-    mainInit: await getWorldsGroups(event_string),
+    mainInit: await getWorldsMainEvent(event_string),
   };
 
   return <Worlds {...worldsProps} />;

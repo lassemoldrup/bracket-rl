@@ -3,7 +3,7 @@
 @use 'Format.module' as format;
 
 $upper-bracket-height: bracket.$header-height + 8 *
-  (format.$match-height + 15px);
+  (format.$match-height + bracket.$match-gap);
 $lower-bracket-height: ($upper-bracket-height + bracket.$header-height) / 2;
 $vertical-gap: 20px;
 
@@ -13,18 +13,8 @@ $vertical-gap: 20px;
   font-size: 10pt;
 }
 
-.double-elim hr {
-  border: none;
-  height: 1px;
-  background: $border-color;
-  margin: 0;
-}
-
-.double-elim-column {
-  min-width: bracket.$horizontal-gap;
-  display: grid;
-  row-gap: $vertical-gap;
-  grid-template-rows: $upper-bracket-height $lower-bracket-height;
+.upper-bracket {
+  margin-bottom: $vertical-gap;
 }
 
 .grand-final-column {
