@@ -40,6 +40,7 @@ function ScoredTeamWithRef(
       else return;
 
       redrawFormat();
+      if (event.key === 'Backspace') return;
       if (nextRef) nextRef.current?.focus();
       else (event.target as HTMLInputElement).blur();
     };
