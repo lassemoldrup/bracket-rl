@@ -2,12 +2,12 @@
   display: flex;
   justify-content: space-around;
   flex-wrap: wrap;
-  min-width: 100vw;
-  max-width: 1600px;
+  min-width: min(100vw, 1650px);
+  margin: 0 -20px;
 }
 
 .group {
-  padding: 20px 30px;
+  padding: 20px 20px;
 }
 
 .group-title {
@@ -19,9 +19,6 @@
 }
 
 .playoffs {
-  width: 100vw;
-  height: 100vh;
-  max-width: 1000px;
-  max-height: 500px;
-  padding: 20px;
+  min-width: min(100vw, 1000px);
+  min-height: min(100vh, 500px);
 }
