@@ -5,7 +5,7 @@ import styles from 'styles/RootLayout.module.scss';
 export const metadata: Metadata = {
   title: 'Rocket League Bracket',
   icons: '/favicon.ico',
-  description: 'Rocket Leauge Esports bracket prediction tool',
+  description: 'Rocket League Esports bracket prediction tool',
 };
 
 export default function RootLayout({
