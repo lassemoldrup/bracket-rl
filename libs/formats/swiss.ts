@@ -141,7 +141,6 @@ export class SwissFormat {
     }
 
     // Construct the matchups
-    const matchups = [];
     const previvousMatches = _.flattenDeep(
       this.rounds.slice(0, round).map((r) => r.map((mL) => mL.matches))
     ).filter((m) => m.slots[0].team && m.slots[1].team);
@@ -150,44 +149,93 @@ export class SwissFormat {
       (mL) => mL.map((m) => m.slots[1].team as Team)
     );
 
-    // Mark teams as undefined as they are chosen
-    const sortedTeams = matchListTeams as (Team | undefined)[];
-    for (let i = 0; i < matchListTeams.length; i++) {
-      const team = matchListTeams[i];
-      if (!team) continue;
+    const findMatchups = (
+      teams: Team[],
+      allowedRematches: number
+    ): Matchup[] | null => {
+      if (teams.length === 0) return [];
+      const team = teams[0];
 
-      // Find opponent: try to avoid previvous matchups
-      let j: number;
-      let opponent: Team | undefined;
-      for (j = matchListTeams.length - 1; j >= 0; j--) {
-        opponent = matchListTeams[j];
+      let matchups: Matchup[] | null = null;
+      // Try to find opponent without rematches
+      for (let i = teams.length - 1; i > 0; i--) {
+        const opponent = teams[i];
         if (
-          !opponent ||
-          opponent === team ||
           previvousMatchups[team.name]?.includes(opponent) ||
           previvousMatchups[opponent.name]?.includes(team)
-        ) {
-          opponent = undefined;
+        )
           continue;
+
+        const newTeams = teams.filter((_, j) => j !== 0 && j !== i);
+        matchups = findMatchups(newTeams, allowedRematches);
+        if (matchups) {
+          matchups.unshift([team, opponent]);
+          return matchups;
         }
+      }
+
+      // Try to find opponent with a rematch
+      if (allowedRematches === 0) return null;
+      for (let i = teams.length - 1; i > 0; i--) {
+        const opponent = teams[i];
+        const newTeams = teams.filter((_, j) => j !== 0 && j !== i);
+        matchups = findMatchups(newTeams, allowedRematches - 1);
+        if (matchups) {
+          matchups.unshift([team, opponent]);
+          return matchups;
+        }
+      }
+
+      return null;
+    };
+
+    let matchups: Matchup[] | undefined;
+    for (let i = 0; i <= teams.length >> 1; i++) {
+      const candidate = findMatchups(matchListTeams, i);
+      if (candidate) {
+        matchups = candidate;
         break;
       }
-
-      // We did not find opponent that we hadn't played, just pick first option
-      if (!opponent) {
-        for (j = matchListTeams.length - 1; j >= 0; j--) {
-          opponent = matchListTeams[j];
-          if (!opponent || opponent === team) continue;
-          break;
-        }
-      }
-
-      matchups.push([team, opponent as Team]);
-      sortedTeams[i] = undefined;
-      sortedTeams[j] = undefined;
     }
+    assert(matchups, 'We should eventually find a matching');
+    // // Mark teams as undefined as they are chosen
+    // const sortedTeams = matchListTeams as (Team | undefined)[];
+    // for (let i = 0; i < matchListTeams.length; i++) {
+    //   const team = matchListTeams[i];
+    //   if (!team) continue;
 
-    return matchups as Matchup[];
+    //   // Find opponent: try to avoid previvous matchups
+    //   let j: number;
+    //   let opponent: Team | undefined;
+    //   for (j = matchListTeams.length - 1; j >= 0; j--) {
+    //     opponent = sortedTeams[j];
+    //     if (
+    //       !opponent ||
+    //       opponent === team ||
+    //       previvousMatchups[team.name]?.includes(opponent) ||
+    //       previvousMatchups[opponent.name]?.includes(team)
+    //     ) {
+    //       opponent = undefined;
+    //       continue;
+    //     }
+    //     break;
+    //   }
+
+    //   // We did not find opponent that we hadn't played, just pick first option
+    //   if (!opponent) {
+    //     for (j = matchListTeams.length - 1; j >= 0; j--) {
+    //       opponent = matchListTeams[j];
+    //       if (!opponent || opponent === team) continue;
+    //       break;
+    //     }
+    //   }
+
+    //   matchups.push([team, opponent as Team]);
+    //   sortedTeams[i] = undefined;
+    //   sortedTeams[j] = undefined;
+    // }
+
+    return matchups;
   }
 }
 
