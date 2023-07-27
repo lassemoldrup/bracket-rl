@@ -8,7 +8,7 @@ $tab-gap: 8px;
 }
 
 .tabs {
-  width: 100%;
+  width: 100vw;
   padding: $tab-gap $tab-gap / 2;
   display: flex;
   position: fixed;

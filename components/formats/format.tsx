@@ -68,8 +68,8 @@ function ScoredTeamWithRef(
       <input
         className={scoreClassName}
         value={slot.score ?? ''}
-        readOnly
         onKeyDown={getSetScoreHandler('score')}
+        onChange={(e) => {}}
         inputMode="numeric"
         ref={ref}
       />
@@ -80,8 +80,8 @@ function ScoredTeamWithRef(
             disabled={!isBracketReset}
             className={bracketResetScoreClassName}
             value={slot.bracketResetScore ?? ''}
-            readOnly
             onKeyDown={getSetScoreHandler('bracketResetScore')}
+            onChange={(e) => {}}
             inputMode="numeric"
           />
         </>
