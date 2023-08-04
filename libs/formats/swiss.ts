@@ -39,10 +39,11 @@ export class SwissFormat {
           actualMatchup
         )
       );
-      if (!match)
+      if (!match) {
         throw new Error(
-          `Matchup ${actualMatchup[0].name} vs ${actualMatchup[1].name} not in generated matches`
+          `Matchup ${actualMatchup[0]?.name} vs ${actualMatchup[1]?.name} not in generated matches`
         );
+      }
       for (let i = 0; i < 2; i++) match.slots[i].score = scores[i];
     }
   }
@@ -198,42 +199,6 @@ export class SwissFormat {
       }
     }
     assert(matchups, 'We should eventually find a matching');
-    // // Mark teams as undefined as they are chosen
-    // const sortedTeams = matchListTeams as (Team | undefined)[];
-    // for (let i = 0; i < matchListTeams.length; i++) {
-    //   const team = matchListTeams[i];
-    //   if (!team) continue;
-
-    //   // Find opponent: try to avoid previvous matchups
-    //   let j: number;
-    //   let opponent: Team | undefined;
-    //   for (j = matchListTeams.length - 1; j >= 0; j--) {
-    //     opponent = sortedTeams[j];
-    //     if (
-    //       !opponent ||
-    //       opponent === team ||
-    //       previvousMatchups[team.name]?.includes(opponent) ||
-    //       previvousMatchups[opponent.name]?.includes(team)
-    //     ) {
-    //       opponent = undefined;
-    //       continue;
-    //     }
-    //     break;
-    //   }
-
-    //   // We did not find opponent that we hadn't played, just pick first option
-    //   if (!opponent) {
-    //     for (j = matchListTeams.length - 1; j >= 0; j--) {
-    //       opponent = matchListTeams[j];
-    //       if (!opponent || opponent === team) continue;
-    //       break;
-    //     }
-    //   }
-
-    //   matchups.push([team, opponent as Team]);
-    //   sortedTeams[i] = undefined;
-    //   sortedTeams[j] = undefined;
-    // }
 
     return matchups;
   }

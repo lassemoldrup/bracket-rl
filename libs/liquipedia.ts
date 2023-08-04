@@ -78,19 +78,29 @@ export const getWildcard = cache(async function (
       (_, i) => i % 2
     );
 
-  const teams = await getTeamsFromKeys(teamKeys);
-  const matchTeams = (subSections as WTFSection[]).flatMap((r) =>
+  const matchTeamOpponents = (subSections as WTFSection[]).flatMap((r) =>
     (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map((t) =>
       t.json()
     )
   );
 
+  // There might be teams with multiple keys, so we convert everything
+  // to rendered teams, which are unique per team
+  const allMatchTeamKeys = _.uniq(
+    teamKeys.concat(matchTeamOpponents.map((t) => t.key))
+  );
+  const allMatchTeams = await getTeamsFromKeys(allMatchTeamKeys);
+  const teamMap = _.zipObject(allMatchTeamKeys, allMatchTeams);
+
+  const teams = teamKeys.map((t) => teamMap[t]);
+  const matchTeams = matchTeamOpponents.map((t) => teamMap[t.key]);
+
   const matchups = _.chunk(
-    matchTeams.map((t) => teamKeys.indexOf(t.key)),
+    matchTeams.map((mt) => teams.findIndex((t) => t.name === mt.name)),
     2
   ) as [number, number][];
   const matchScores = _.chunk(
-    matchTeams.map((t) => t.score),
+    matchTeamOpponents.map((t) => t.score),
     2
   ) as MatchScore[];
   return { teams, matchups, matchScores, winsNeeded: 4 };
@@ -147,7 +157,7 @@ async function getSection(
   if (!doc) throw 'Failed to get event';
 
   const section = (doc as WTFDocument).section(sectionName);
-  if (!section) throw `Failed to get ${sectionName} section`;
+  if (!section) throw new Error(`Failed to get ${sectionName} section`);
 
   return section;
 }
@@ -214,28 +224,30 @@ async function getTeamsFromKeys(teamKeys: string[]): Promise<Team[]> {
   });
   const rawTeamResponse = await fetch(teamRequestURL, { headers });
   if (!rawTeamResponse.ok)
-    throw `Failed to get teams: status code ${rawTeamResponse.status}.`;
+    throw new Error(
+      `Failed to get teams: status code ${rawTeamResponse.status}.`
+    );
 
   const teamData = JSON.parse(await rawTeamResponse.text());
   if (teamData.error) {
     if (teamData.error.info)
-      throw 'Failed to get teams: ' + teamData.error.info;
-    else throw 'Failed to get teams.';
+      throw new Error('Failed to get teams: ' + teamData.error.info);
+    else throw new Error('Failed to get teams.');
   }
 
-  const imageList = wtf(teamData.expandtemplates.wikitext).images();
-  // Deprioritizes images that have lightmode in the name
-  const sortedImages = _.sortBy(imageList, (im) =>
-    im.file().includes('lightmode')
-  );
+  const imageList = wtf(teamData.expandtemplates.wikitext)
+    .images()
+    // Deprioritizes lightmode images
+    .filter((_, i) => i % 2 === 1);
+
   const [teamNames, imageURLs] = _.unzip(
-    _.uniqBy(sortedImages, (im) => im.caption()).map((im) => [
+    imageList.map((im) => [
       im.caption(),
       im.url().replace('wikipedia.org/wiki', 'liquipedia.net/rocketleague'),
     ])
   );
   if (teamNames.length !== imageURLs.length)
-    throw 'Mismatch between teamNames and imageURLs';
+    throw new Error('Mismatch between teamNames and imageURLs');
 
   return _.zip(teamNames, imageURLs).map(([name, image]) => ({
     name: name as string,
