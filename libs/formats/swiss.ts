@@ -7,9 +7,11 @@ import {
   WinLossRecord,
   TeamSlot,
   TeamMatch,
+  MaybeTeam,
+  Format,
 } from '../types';
 
-export class SwissFormat {
+export class SwissFormat implements Format {
   initialSeeding: Team[];
   rounds: SwissMatchList[][];
 
@@ -52,14 +54,25 @@ export class SwissFormat {
     return this.rounds.flatMap((r) => r.flatMap((mL) => mL.matches));
   }
 
-  get winners(): (Team | undefined)[] {
-    let winners: (Team | undefined)[] = [];
+  get winners(): MaybeTeam[] {
+    let winners: MaybeTeam[] = [];
     for (let i = 2; i < 5; i++)
       winners = winners.concat(
-        this.rounds[i][0].winners ||
-          this.rounds[i][0].matches.map((_) => undefined)
+        this.rounds[i][0].winners || this.rounds[i][0].matches.map((_) => null)
       );
     return winners;
+  }
+
+  clear() {
+    for (const mL of this.rounds.flat())
+      for (const match of mL.matches) {
+        match.slots[0].score = null;
+        match.slots[1].score = null;
+      }
+  }
+
+  setTeams(_teams: MaybeTeam[]) {
+    throw new Error('Not implemented');
   }
 
   isDone(round: number = 4): boolean {

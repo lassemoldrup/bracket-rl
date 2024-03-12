@@ -1,5 +1,5 @@
 import wtf from 'wtf_wikipedia';
-import _ from 'lodash';
+import _, { get } from 'lodash';
 import { cache } from 'react';
 import eventOverrides from 'data/event-overrides.json';
 import {
@@ -9,11 +9,11 @@ import {
   Team,
   SwissInitializer,
   WorldsInitializer,
-  PartialMatchup,
 } from './types';
 import assert from 'assert';
+import manifest from '../package.json';
 
-const userAgent = `bracket-rl/1.0 (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
+const userAgent = `bracket-rl/${manifest.version} (http://bracket-rl.vercel.app/; lasse.moeldrup@gmail.com)`;
 
 const TEAM_OPPONENT = 'teamopponent';
 interface TeamOpponent {
@@ -66,6 +66,35 @@ export const getWildcard = cache(async function (
   event: string
 ): Promise<SwissInitializer> {
   const section = await getSection(`${event}/Wildcard`, 'Detailed Results');
+  return await getSwissFromSection(event, section, 4);
+});
+
+export const get2024Swiss = cache(async function (
+  event: string
+): Promise<SwissInitializer> {
+  const section = await getSection(event, 'Detailed Results');
+  return await getSwissFromSection(event, section);
+});
+
+export const get2024Playoffs = cache(async function (
+  event: string
+): Promise<BracketInitializer> {
+  const playoffsSection = await getSection(event, 'Playoffs');
+  const matchScores = (playoffsSection.templates(MATCH) as WTFTemplate<Match>[])
+    .map((m) => m.json())
+    .map((m) => [
+      m.opponent1?.score ?? null,
+      m.opponent2?.score ?? null,
+    ]) as MatchScore[];
+
+  return { matchups: [], matchScores };
+});
+
+async function getSwissFromSection(
+  event: string,
+  section: WTFSection,
+  winsNeeded: number = 3
+): Promise<SwissInitializer> {
   const subSections = section.children();
   if (!subSections || !Array.isArray(subSections))
     throw new Error('Failed to get rounds');
@@ -78,11 +107,13 @@ export const getWildcard = cache(async function (
       (_, i) => i % 2
     );
 
-  const matchTeamOpponents = (subSections as WTFSection[]).flatMap((r) =>
-    (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map((t) =>
-      t.json()
+  const matchTeamOpponents = (subSections as WTFSection[])
+    .flatMap((r) =>
+      (r.templates(TEAM_OPPONENT) as WTFTemplate<TeamOpponent>[]).map((t) =>
+        t.json()
+      )
     )
-  );
+    .filter((to) => to.key !== '');
 
   // There might be teams with multiple keys, so we convert everything
   // to rendered teams, which are unique per team
@@ -103,8 +134,8 @@ export const getWildcard = cache(async function (
     matchTeamOpponents.map((t) => t.score),
     2
   ) as MatchScore[];
-  return { teams, matchups, matchScores, winsNeeded: 4 };
-});
+  return { teams, matchups, matchScores, winsNeeded };
+}
 
 export const getWorldsMainEvent = cache(async function (
   event: string
@@ -172,7 +203,7 @@ function extendTemplates(_models: any, templates: any): void {
     // Return a score of 100 if match was forfeit, this will get clamped to the match max
     let score: number | null = obj.score === 'W' ? 100 : parseInt(obj.score);
     if (!obj.score) score = null;
-    // if score is NaN i.e. 'FF'
+    // if score is NaN e.g. 'FF'
     else if (score !== score) score = 0;
     const parsed = {
       key: obj.list[0].toLowerCase(),

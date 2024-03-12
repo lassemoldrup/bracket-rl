@@ -5,10 +5,11 @@ export interface Team {
 
 export type MatchScore = [number | null, number | null];
 export type Matchup = [Team, Team];
-export type PartialMatchup = [Team | null, Team | null];
+export type MaybeTeam = Team | null;
+export type PartialMatchup = [MaybeTeam, MaybeTeam];
 
 export interface BracketInitializer {
-  matchups: Matchup[];
+  matchups: PartialMatchup[];
   matchScores: MatchScore[];
 }
 
@@ -24,6 +25,11 @@ export interface SwissInitializer {
 export interface WorldsInitializer {
   matchups: PartialMatchup[];
   matchScores: MatchScore[];
+}
+
+export interface Format {
+  clear(): void;
+  setTeams(teams: MaybeTeam[]): void;
 }
 
 export interface WinLossRecord {

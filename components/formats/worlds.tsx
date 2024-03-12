@@ -5,11 +5,7 @@ import { SwissInitializer, WorldsInitializer } from 'libs/types';
 import Swiss from './swiss';
 import { FormatProps, ScoreRef } from './format';
 import { forwardRef, useRef, useState } from 'react';
-import {
-  WorldsFormat,
-  WorldsGroup,
-  WorldsPlayoffsFormat,
-} from 'libs/formats/worlds';
+import { WorldsFormat, WorldsGroup } from 'libs/formats/worlds';
 import Controls from 'components/controls';
 import styles from 'styles/formats/Worlds.module.scss';
 import {
@@ -17,9 +13,11 @@ import {
   BracketLinesColumn,
   Column,
   QualifiedColumn,
+  Top8SingleElimBracket,
 } from './bracket';
 import _ from 'lodash';
 import { SwissFormat } from 'libs/formats/swiss';
+import { Top8SingleElimBracketFormat } from 'libs/formats/bracket';
 
 export default function Worlds({
   wildcardInit,
@@ -30,24 +28,25 @@ export default function Worlds({
 }) {
   const [tab, setTab] = useState(0);
   const [wildcard, setWildcard] = useState(new SwissFormat(wildcardInit));
+  const [format, setFormat] = useState(new WorldsFormat(mainInit));
+
   const redrawWildcard = () => {
-    format.setWildcardTeams(wildcard.winners);
+    format.setTeams(wildcard.winners);
     setWildcard(_.clone(wildcard));
   };
-  const [format, setFormat] = useState(new WorldsFormat(mainInit));
   const redrawFormat = () => setFormat(_.clone(format));
-  format.setWildcardTeams(wildcard.winners);
+  format.setTeams(wildcard.winners);
 
   const refs = [useRef(null), useRef(null), useRef(null)];
   const clearFormats = [
     () => {
       setWildcard(new SwissFormat({ ...wildcardInit, matchScores: [] }));
-      format.setWildcardTeams(wildcard.winners);
+      format.setTeams(wildcard.winners);
       redrawFormat();
     },
     () => {
       setFormat(new WorldsFormat({ ...mainInit, matchScores: [] }));
-      format.setWildcardTeams(wildcard.winners);
+      format.setTeams(wildcard.winners);
     },
     () => {
       format.playoffs.clear();
@@ -68,7 +67,7 @@ export default function Worlds({
           <WorldsGroups groups={format.groups} redrawFormat={redrawFormat} />
         </div>
         <div ref={refs[2]}>
-          <WorldsPlayoffs
+          <Top8SingleElimBracket
             bracket={format.playoffs}
             redrawFormat={redrawFormat}
           />
@@ -173,43 +172,3 @@ const Group = forwardRef(function (
     </div>
   );
 });
-
-function WorldsPlayoffs({
-  bracket,
-  redrawFormat,
-}: {
-  bracket: WorldsPlayoffsFormat;
-} & FormatProps) {
-  const quartersRef = useRef(null);
-  const semisRef = useRef(null);
-  const finalRef = useRef(null);
-  return (
-    <Bracket className={styles.playoffs}>
-      <Column
-        matches={bracket.quarters}
-        title={'Quarterfinals'}
-        bigMatches
-        redrawFormat={redrawFormat}
-        ref={quartersRef}
-        nextRef={semisRef}
-      />
-      <BracketLinesColumn count={2} />
-      <Column
-        matches={bracket.semis}
-        title={'Semifinals'}
-        bigMatches
-        redrawFormat={redrawFormat}
-        ref={semisRef}
-        nextRef={finalRef}
-      />
-      <BracketLinesColumn count={1} />
-      <Column
-        matches={[bracket.final]}
-        title={'Grand Final'}
-        bigMatches
-        redrawFormat={redrawFormat}
-        ref={finalRef}
-      />
-    </Bracket>
-  );
-}

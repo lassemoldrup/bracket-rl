@@ -1,4 +1,57 @@
-import { TeamMatch, Matchup, Team, TeamSlot, PartialMatchup } from '../types';
+import assert from 'assert';
+import {
+  TeamMatch,
+  TeamSlot,
+  PartialMatchup,
+  BracketInitializer,
+  MaybeTeam,
+  Format,
+} from '../types';
+import _ from 'lodash';
+
+export class Top8SingleElimBracketFormat implements Format {
+  quarters: BracketNode[];
+  semis: BracketNode[];
+  final = new BracketNode(4);
+
+  constructor(init?: BracketInitializer) {
+    this.semis = [0, 1].map((i) => new BracketNode(4, this.final.slots[i]));
+    this.quarters = [0, 1].flatMap((i) =>
+      [0, 1].map((j) => new BracketNode(4, this.semis[i].slots[j]))
+    );
+
+    if (init) {
+      assert(init.matchups.length <= 8);
+      const matches = [...this.quarters, ...this.semis, this.final];
+      for (const [match, matchup] of _.zip(matches, init.matchups)) {
+        if (!match || !matchup) break;
+        match.slots[0].team = matchup[0];
+        match.slots[1].team = matchup[1];
+      }
+      for (const [match, scores] of _.zip(matches, init.matchScores)) {
+        if (!match || !scores) break;
+        match.slots[0].score = scores[0];
+        match.slots[1].score = scores[1];
+      }
+    }
+  }
+
+  clear() {
+    const matches = [this.final, ...this.semis, ...this.quarters];
+    for (const match of matches)
+      for (let i = 0; i < 2; i++) match.slots[i].score = null;
+  }
+
+  setTeams(teams: MaybeTeam[]) {
+    assert(teams.length <= 8);
+    const order = [0, 4, 6, 2, 3, 7, 5, 1];
+    for (const [i, team] of _.zip(order, teams)) {
+      if (i === undefined || !team) break;
+      const quarterIdx = Math.floor(i / 2);
+      this.quarters[quarterIdx].slots[i % 2].team = team;
+    }
+  }
+}
 
 export class BracketNode implements TeamMatch {
   winsNeeded: number;
@@ -25,16 +78,16 @@ export class BracketNode implements TeamMatch {
     this.bracketReset = bracketReset;
   }
 
-  get winner(): Team | undefined {
-    if (this.slots[0]?.hasWon()) return this.slots[0].team ?? undefined;
-    else if (this.slots[1]?.hasWon()) return this.slots[1].team ?? undefined;
-    return undefined;
+  get winner(): MaybeTeam {
+    if (this.slots[0]?.hasWon()) return this.slots[0].team;
+    else if (this.slots[1]?.hasWon()) return this.slots[1].team;
+    return null;
   }
 }
 
 export class BracketSlot implements TeamSlot {
   match: BracketNode;
-  #team: Team | null = null;
+  #team: MaybeTeam = null;
   #score: number | null = null;
   #bracketResetScore: number | null = null;
 
@@ -50,11 +103,11 @@ export class BracketSlot implements TeamSlot {
     }
   }
 
-  get team(): Team | null {
+  get team(): MaybeTeam {
     return this.#team;
   }
 
-  set team(value: Team | null) {
+  set team(value: MaybeTeam) {
     this.#team = value;
     if (this.score === this.winsNeeded && this.match.winSlot)
       this.match.winSlot.team = value;

@@ -1,10 +1,50 @@
 import styles from 'styles/formats/Bracket.module.scss';
-import { BracketNode } from 'libs/formats/bracket';
+import { BracketNode, Top8SingleElimBracketFormat } from 'libs/formats/bracket';
 import classNames from 'classnames';
 import { FormatProps, ScoreRef, ScoredTeam, Team } from './format';
 import { forwardRef, useRef } from 'react';
 import _ from 'lodash';
 import * as types from 'libs/types';
+
+export function Top8SingleElimBracket({
+  bracket,
+  redrawFormat,
+}: {
+  bracket: Top8SingleElimBracketFormat;
+} & FormatProps) {
+  const quartersRef = useRef(null);
+  const semisRef = useRef(null);
+  const finalRef = useRef(null);
+  return (
+    <Bracket className={styles.playoffs}>
+      <Column
+        matches={bracket.quarters}
+        title={'Quarterfinals'}
+        bigMatches
+        redrawFormat={redrawFormat}
+        ref={quartersRef}
+        nextRef={semisRef}
+      />
+      <BracketLinesColumn count={2} />
+      <Column
+        matches={bracket.semis}
+        title={'Semifinals'}
+        bigMatches
+        redrawFormat={redrawFormat}
+        ref={semisRef}
+        nextRef={finalRef}
+      />
+      <BracketLinesColumn count={1} />
+      <Column
+        matches={[bracket.final]}
+        title={'Grand Final'}
+        bigMatches
+        redrawFormat={redrawFormat}
+        ref={finalRef}
+      />
+    </Bracket>
+  );
+}
 
 export function Bracket({
   children,

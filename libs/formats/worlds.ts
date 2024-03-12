@@ -1,11 +1,18 @@
-import { Matchup, PartialMatchup, Team, WorldsInitializer } from 'libs/types';
-import { BracketNode } from './bracket';
+import {
+  Format,
+  Matchup,
+  MaybeTeam,
+  PartialMatchup,
+  Team,
+  WorldsInitializer,
+} from 'libs/types';
+import { BracketNode, Top8SingleElimBracketFormat } from './bracket';
 import assert from 'assert';
 import _ from 'lodash';
 
-export class WorldsFormat {
+export class WorldsFormat implements Format {
   groups: [WorldsGroup, WorldsGroup];
-  playoffs = new WorldsPlayoffsFormat();
+  playoffs = new Top8SingleElimBracketFormat();
 
   constructor({ matchups, matchScores }: WorldsInitializer) {
     assert(matchups.length === 8);
@@ -32,17 +39,29 @@ export class WorldsFormat {
     }
   }
 
-  setWildcardTeams(teams: (Team | undefined)[]) {
+  clear() {
+    for (const group of this.groups) {
+      for (const match of [
+        ...group.upperQuarters,
+        ...group.lowerQuarters,
+        ...group.upperSemis,
+        ...group.lowerSemis,
+      ])
+        for (let i = 0; i < 2; i++) match.slots[i].score = null;
+    }
+  }
+
+  setTeams(teams: MaybeTeam[]) {
     assert(teams.length === 8);
 
-    this.groups[0].upperQuarters[0].slots[1].team = teams[7] ?? null;
-    this.groups[0].upperQuarters[1].slots[1].team = teams[1] ?? null;
-    this.groups[0].upperQuarters[2].slots[1].team = teams[4] ?? null;
-    this.groups[0].upperQuarters[3].slots[1].team = teams[2] ?? null;
-    this.groups[1].upperQuarters[0].slots[1].team = teams[6] ?? null;
-    this.groups[1].upperQuarters[1].slots[1].team = teams[0] ?? null;
-    this.groups[1].upperQuarters[2].slots[1].team = teams[5] ?? null;
-    this.groups[1].upperQuarters[3].slots[1].team = teams[3] ?? null;
+    this.groups[0].upperQuarters[0].slots[1].team = teams[7];
+    this.groups[0].upperQuarters[1].slots[1].team = teams[1];
+    this.groups[0].upperQuarters[2].slots[1].team = teams[4];
+    this.groups[0].upperQuarters[3].slots[1].team = teams[2];
+    this.groups[1].upperQuarters[0].slots[1].team = teams[6];
+    this.groups[1].upperQuarters[1].slots[1].team = teams[0];
+    this.groups[1].upperQuarters[2].slots[1].team = teams[5];
+    this.groups[1].upperQuarters[3].slots[1].team = teams[3];
   }
 }
 
@@ -86,24 +105,5 @@ export class WorldsGroup {
           )
       )
     );
-  }
-}
-
-export class WorldsPlayoffsFormat {
-  quarters: BracketNode[];
-  semis: BracketNode[];
-  final = new BracketNode(4);
-
-  constructor() {
-    this.semis = [0, 1].map((i) => new BracketNode(4, this.final.slots[i]));
-    this.quarters = [0, 1].flatMap((i) =>
-      [0, 1].map((j) => new BracketNode(4, this.semis[i].slots[j]))
-    );
-  }
-
-  clear() {
-    const matches = [this.final, ...this.semis, ...this.quarters];
-    for (const match of matches)
-      for (let i = 0; i < 2; i++) match.slots[i].score = null;
   }
 }
