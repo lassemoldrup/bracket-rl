@@ -46,9 +46,10 @@ export class Top8SingleElimBracketFormat implements Format {
     assert(teams.length <= 8);
     const order = [0, 4, 6, 2, 3, 7, 5, 1];
     for (const [i, team] of _.zip(order, teams)) {
-      if (i === undefined || !team) break;
+      if (i === undefined) break;
+      const maybeTeam = team === undefined ? null : team;
       const quarterIdx = Math.floor(i / 2);
-      this.quarters[quarterIdx].slots[i % 2].team = team;
+      this.quarters[quarterIdx].slots[i % 2].team = maybeTeam;
     }
   }
 }

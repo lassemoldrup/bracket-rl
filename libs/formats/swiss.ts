@@ -57,9 +57,7 @@ export class SwissFormat implements Format {
   get winners(): MaybeTeam[] {
     let winners: MaybeTeam[] = [];
     for (let i = 2; i < 5; i++)
-      winners = winners.concat(
-        this.rounds[i][0].winners || this.rounds[i][0].matches.map((_) => null)
-      );
+      winners = winners.concat(this.rounds[i][0].winners);
     return winners;
   }
 
@@ -238,13 +236,13 @@ export class SwissMatchList {
     this.list = list;
   }
 
-  get winners(): Team[] | undefined {
-    if (!this.isDone()) return undefined;
-
+  get winners(): MaybeTeam[] {
     const gameDiff = this.format.getGameDiffs(this.round);
-    let res = this.matches.map((m) => m.winner as Team);
-    res = _.sortBy(res, (t) => this.format.initialSeeding.indexOf(t));
-    res = _.sortBy(res, (t) => -gameDiff[t.name]);
+    let res = this.matches.map((m) => m.winner);
+    res = _.sortBy(res, (t) =>
+      t ? this.format.initialSeeding.indexOf(t) : 1000000
+    );
+    res = _.sortBy(res, (t) => (t ? -gameDiff[t.name] : 1000000));
     return res;
   }
 
@@ -288,10 +286,10 @@ export class SwissMatch implements TeamMatch {
     ];
   }
 
-  get winner(): Team | undefined {
+  get winner(): MaybeTeam {
     for (let i = 0; i < 2; i++)
-      if (this.slots[i].hasWon()) return this.slots[i].team || undefined;
-    return undefined;
+      if (this.slots[i].hasWon()) return this.slots[i].team;
+    return null;
   }
 
   get isQualification(): boolean {
