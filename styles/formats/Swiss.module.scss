@@ -1,5 +1,11 @@
 @use '../vars' as *;
 
+$swiss-padding: $root-padding;
+
+.swiss-container {
+  display: flex;
+}
+
 .swiss {
   display: flex;
   justify-content: space-evenly;
@@ -9,7 +15,7 @@
 }
 
 .round {
-  padding: 20px;
+  padding: $swiss-padding;
 }
 
 .round-header {

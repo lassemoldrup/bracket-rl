@@ -45,15 +45,12 @@ export default function Format2024({
   return (
     <div>
       <Tabbed tabNames={['Swiss', 'Playoffs']} onChange={setTab}>
-        <div ref={refs[0]}>
-          <Swiss format={swiss} redrawFormat={redrawSwiss} />
-        </div>
-        <div ref={refs[1]}>
-          <Top8SingleElimBracket
-            bracket={bracket}
-            redrawFormat={redrawBracket}
-          />
-        </div>
+        <Swiss format={swiss} redrawFormat={redrawSwiss} ref={refs[0]} />
+        <Top8SingleElimBracket
+          bracket={bracket}
+          redrawFormat={redrawBracket}
+          ref={refs[1]}
+        />
       </Tabbed>
       <Controls formatRef={refs[tab]} clearFormat={clearFormats[tab]} />
     </div>

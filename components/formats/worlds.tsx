@@ -4,7 +4,7 @@ import Tabbed from 'components/tabbed';
 import { SwissInitializer, WorldsInitializer } from 'libs/types';
 import Swiss from './swiss';
 import { FormatProps, ScoreRef } from './format';
-import { forwardRef, useRef, useState } from 'react';
+import { Ref, forwardRef, useRef, useState } from 'react';
 import { WorldsFormat, WorldsGroup } from 'libs/formats/worlds';
 import Controls from 'components/controls';
 import styles from 'styles/formats/Worlds.module.scss';
@@ -17,7 +17,6 @@ import {
 } from './bracket';
 import _ from 'lodash';
 import { SwissFormat } from 'libs/formats/swiss';
-import { Top8SingleElimBracketFormat } from 'libs/formats/bracket';
 
 export default function Worlds({
   wildcardInit,
@@ -60,50 +59,54 @@ export default function Worlds({
         tabNames={['Wildcard', 'Group Stage', 'Playoffs']}
         onChange={setTab}
       >
-        <div ref={refs[0]}>
-          <Swiss format={wildcard} redrawFormat={redrawWildcard} />
-        </div>
-        <div ref={refs[1]}>
-          <WorldsGroups groups={format.groups} redrawFormat={redrawFormat} />
-        </div>
-        <div ref={refs[2]}>
-          <Top8SingleElimBracket
-            bracket={format.playoffs}
-            redrawFormat={redrawFormat}
-          />
-        </div>
+        <Swiss format={wildcard} redrawFormat={redrawWildcard} ref={refs[0]} />
+        <WorldsGroups
+          groups={format.groups}
+          redrawFormat={redrawFormat}
+          ref={refs[1]}
+        />
+        <Top8SingleElimBracket
+          bracket={format.playoffs}
+          redrawFormat={redrawFormat}
+          ref={refs[2]}
+        />
       </Tabbed>
       <Controls formatRef={refs[tab]} clearFormat={clearFormats[tab]} />
     </div>
   );
 }
 
-function WorldsGroups({
-  groups,
-  redrawFormat,
-}: {
-  groups: [WorldsGroup, WorldsGroup];
-} & FormatProps) {
+const WorldsGroups = forwardRef(function (
+  {
+    groups,
+    redrawFormat,
+  }: {
+    groups: [WorldsGroup, WorldsGroup];
+  } & FormatProps,
+  ref: Ref<HTMLDivElement>
+) {
   const groupBRef = useRef(null);
-  const formatRef = useRef(null);
+  // const formatRef = useRef(null);
 
   return (
-    <div className={styles.groups} ref={formatRef}>
-      <Group
-        group={groups[0]}
-        title="Group A"
-        nextRef={groupBRef}
-        redrawFormat={redrawFormat}
-      />
-      <Group
-        group={groups[1]}
-        title="Group B"
-        ref={groupBRef}
-        redrawFormat={redrawFormat}
-      />
+    <div className={styles['groups-container']}>
+      <div className={styles.groups} ref={ref}>
+        <Group
+          group={groups[0]}
+          title="Group A"
+          nextRef={groupBRef}
+          redrawFormat={redrawFormat}
+        />
+        <Group
+          group={groups[1]}
+          title="Group B"
+          ref={groupBRef}
+          redrawFormat={redrawFormat}
+        />
+      </div>
     </div>
   );
-}
+});
 
 const Group = forwardRef(function (
   {

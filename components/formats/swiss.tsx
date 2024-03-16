@@ -1,36 +1,42 @@
 'use client';
 
 import { SwissFormat, SwissMatch, SwissMatchList } from 'libs/formats/swiss';
-import { forwardRef, useRef } from 'react';
+import { Ref, forwardRef, useRef } from 'react';
 import styles from 'styles/formats/Swiss.module.scss';
 import { Vertical } from 'components/misc';
 import { FormatProps, ScoreRef, ScoredTeam } from './format';
 import _ from 'lodash';
 
-export default function Swiss({
-  format,
-  redrawFormat,
-}: {
+type SwissProps = {
   format: SwissFormat;
   redrawFormat: () => void;
-}) {
+};
+
+const Swiss = forwardRef(function (
+  { format, redrawFormat }: SwissProps,
+  ref: Ref<HTMLDivElement>
+) {
   const roundRefs = _.range(format.rounds.length).map((_m) => useRef(null));
 
   return (
-    <div className={styles.swiss}>
-      {format.rounds.map((r, i) => (
-        <Round
-          round={r}
-          name={`Round ${i + 1}`}
-          ref={roundRefs[i]}
-          nextRef={roundRefs[i + 1]}
-          redrawFormat={redrawFormat}
-          key={i}
-        />
-      ))}
+    <div className={styles['swiss-container']}>
+      <div className={styles.swiss} ref={ref}>
+        {format.rounds.map((r, i) => (
+          <Round
+            round={r}
+            name={`Round ${i + 1}`}
+            ref={roundRefs[i]}
+            nextRef={roundRefs[i + 1]}
+            redrawFormat={redrawFormat}
+            key={i}
+          />
+        ))}
+      </div>
     </div>
   );
-}
+});
+
+export default Swiss;
 
 const Round = forwardRef(function (
   {

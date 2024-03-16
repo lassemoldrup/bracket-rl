@@ -5,6 +5,8 @@ $tab-gap: 8px;
 
 .tabs-container {
   margin-top: $tab-height + 3 * $tab-gap;
+  overflow-x: scroll;
+  max-width: 100vw;
 }
 
 .tabs {
@@ -45,5 +47,17 @@ $tab-gap: 8px;
   &:not(.active):hover,
   &:not(.active):active {
     background: mix($bg-color-lighter, $bg-color-light);
+  }
+}
+
+@media only screen and (max-width: 440px) {
+  .crowded {
+    font-size: 1rem;
+  }
+}
+
+@media only screen and (max-width: 330px) {
+  .crowded {
+    font-size: 0.8rem;
   }
 }

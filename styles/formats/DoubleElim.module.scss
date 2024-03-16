@@ -11,6 +11,7 @@ $vertical-gap: 20px;
   display: flex;
   align-items: stretch;
   font-size: 10pt;
+  padding: $root-padding;
 }
 
 .upper-bracket {

@@ -30,7 +30,10 @@ export default function Tabbed({
       <div className={styles.tabs}>
         {tabNames.map((name, i) => (
           <div
-            className={classnames(styles.tab, { [styles.active]: i === tab })}
+            className={classnames(styles.tab, {
+              [styles.active]: i === tab,
+              [styles.crowded]: tabNames.length > 2,
+            })}
             onClick={() => changeTab(i)}
             key={i}
           >

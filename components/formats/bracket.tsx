@@ -2,21 +2,22 @@ import styles from 'styles/formats/Bracket.module.scss';
 import { BracketNode, Top8SingleElimBracketFormat } from 'libs/formats/bracket';
 import classNames from 'classnames';
 import { FormatProps, ScoreRef, ScoredTeam, Team } from './format';
-import { forwardRef, useRef } from 'react';
+import { Ref, forwardRef, useRef } from 'react';
 import _ from 'lodash';
 import * as types from 'libs/types';
 
-export function Top8SingleElimBracket({
-  bracket,
-  redrawFormat,
-}: {
-  bracket: Top8SingleElimBracketFormat;
-} & FormatProps) {
+export const Top8SingleElimBracket = forwardRef(function (
+  {
+    bracket,
+    redrawFormat,
+  }: { bracket: Top8SingleElimBracketFormat } & FormatProps,
+  ref: Ref<HTMLDivElement>
+) {
   const quartersRef = useRef(null);
   const semisRef = useRef(null);
   const finalRef = useRef(null);
   return (
-    <Bracket className={styles.playoffs}>
+    <Bracket className={styles.playoffs} ref={ref}>
       <Column
         matches={bracket.quarters}
         title={'Quarterfinals'}
@@ -44,19 +45,23 @@ export function Top8SingleElimBracket({
       />
     </Bracket>
   );
-}
+});
 
-export function Bracket({
-  children,
-  className,
-}: {
+type BracketProps = {
   children: React.ReactNode;
   className?: string;
-}) {
+};
+
+export const Bracket = forwardRef(function (
+  { children, className }: BracketProps,
+  ref: Ref<HTMLDivElement>
+) {
   return (
-    <div className={classNames(styles.bracket, className)}>{children}</div>
+    <div className={classNames(styles.bracket, className)} ref={ref}>
+      {children}
+    </div>
   );
-}
+});
 
 export const Column = forwardRef(function (
   {
