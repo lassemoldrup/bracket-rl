@@ -21,25 +21,29 @@ export default function Controls({
 
     setIsDownloading(true);
 
-    // Try to fix Safari being weird, see
-    // https://github.com/bubkoo/html-to-image/issues/361
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (isSafari)
-      for (let i = 0; i < 2; i++)
-        await toBlob(formatElement, {
-          includeQueryParams: true,
-        });
+    try {
+      // Try to fix Safari being weird, see
+      // https://github.com/bubkoo/html-to-image/issues/361
+      const isSafari = /^((?!chrome|android).)*safari/i.test(
+        navigator.userAgent
+      );
+      if (isSafari)
+        for (let i = 0; i < 2; i++)
+          await toBlob(formatElement, {
+            includeQueryParams: true,
+          });
 
-    const blob = await toBlob(formatElement, {
-      backgroundColor: styles.mainBgColor,
-      includeQueryParams: true,
-      style: {
-        scale: '98%',
-      },
-    });
-    if (blob) FileSaver.saveAs(blob, 'bracket.png');
-
-    setIsDownloading(false);
+      const blob = await toBlob(formatElement, {
+        backgroundColor: styles.mainBgColor,
+        includeQueryParams: true,
+        style: {
+          scale: '98%',
+        },
+      });
+      if (blob) FileSaver.saveAs(blob, 'bracket.png');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
