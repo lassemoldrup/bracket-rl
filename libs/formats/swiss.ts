@@ -9,6 +9,7 @@ import {
   TeamMatch,
   MaybeTeam,
   Format,
+  MatchScore,
 } from '../types';
 
 export class SwissFormat implements Format {
@@ -32,19 +33,30 @@ export class SwissFormat implements Format {
     this.rounds[0][0].setMatchups(firstRoundMatchups);
 
     const matches = this.matches;
-    for (const [matchup, scores] of _.zip(matchups, matchScores)) {
+    for (let [matchup, scores] of _.zip(matchups, matchScores)) {
       if (!matchup || !scores) break;
       const actualMatchup = [teams[matchup[0]], teams[matchup[1]]];
-      const match = matches.find((m) =>
+      let match = matches.find((m) =>
         _.isEqual(
           m.slots.map((s) => s.team),
           actualMatchup
         )
       );
       if (!match) {
-        throw new Error(
-          `Matchup ${actualMatchup[0]?.name} vs ${actualMatchup[1]?.name} not in generated matches`
+        // Try the reverse matchup
+        const actualMatchup = [teams[matchup[1]], teams[matchup[0]]];
+        match = matches.find((m) =>
+          _.isEqual(
+            m.slots.map((s) => s.team),
+            actualMatchup
+          )
         );
+        if (!match) {
+          throw new Error(
+            `Matchup ${actualMatchup[0]?.name} vs ${actualMatchup[1]?.name} not in generated matches`
+          );
+        }
+        scores = scores.reverse() as MatchScore;
       }
       for (let i = 0; i < 2; i++) match.slots[i].score = scores[i];
     }
@@ -142,16 +154,6 @@ export class SwissFormat implements Format {
     // The second most significant seeding rule is game difference
     matchListTeams = _.sortBy(matchListTeams, (t) => -gameDiff[t.name]);
 
-    // Most significant is if we came from the upper or lower round: if we lost, we have higher seed
-    if (round >= 3 || (round == 2 && list == 1)) {
-      const prevRoundSlots = this.rounds[round - 1].flatMap((mL) =>
-        mL.matches.flatMap((m) => m.slots)
-      );
-      matchListTeams = _.sortBy(matchListTeams, (t) =>
-        (prevRoundSlots.find((s) => s.team === t) as SwissSlot).hasWon()
-      );
-    }
-
     // Construct the matchups
     const previvousMatches = _.flattenDeep(
       this.rounds.slice(0, round).map((r) => r.map((mL) => mL.matches))
@@ -161,56 +163,86 @@ export class SwissFormat implements Format {
       (mL) => mL.map((m) => m.slots[1].team as Team)
     );
 
-    const findMatchups = (
-      teams: Team[],
-      allowedRematches: number
-    ): Matchup[] | null => {
-      if (teams.length === 0) return [];
-      const team = teams[0];
+    const played = (t1: Team, t2: Team) =>
+      previvousMatchups[t1.name]?.includes(t2) ||
+      previvousMatchups[t2.name]?.includes(t1);
 
-      let matchups: Matchup[] | null = null;
-      // Try to find opponent without rematches
-      for (let i = teams.length - 1; i > 0; i--) {
-        const opponent = teams[i];
-        if (
-          previvousMatchups[team.name]?.includes(opponent) ||
-          previvousMatchups[opponent.name]?.includes(team)
-        )
-          continue;
+    // Most significant is if we came from the upper or lower round: if we lost, we have higher seed
+    if (round >= 3 || (round == 2 && list == 1)) {
+      const prevRoundSlots = this.rounds[round - 1].flatMap((mL) =>
+        mL.matches.flatMap((m) => m.slots)
+      );
+      // The losers in the previous round are the upper teams
+      matchListTeams = _.sortBy(matchListTeams, (t) =>
+        prevRoundSlots.find((s) => s.team === t)!.hasWon()
+      );
 
-        const newTeams = teams.filter((_, j) => j !== 0 && j !== i);
-        matchups = findMatchups(newTeams, allowedRematches);
-        if (matchups) {
-          matchups.unshift([team, opponent]);
-          return matchups;
+      // Below is wrong, since the best team from lower can be treated as an upper team
+      // const upperTeams = matchListTeams.filter((t) =>
+      //   prevRoundSlots.find((s) => s.team === t && !s.hasWon())
+      // );
+      // const lowerTeams = matchListTeams.filter((t) =>
+      //   prevRoundSlots.find((s) => s.team === t && s.hasWon())
+      // );
+      const upperTeams = matchListTeams.slice(0, matchListTeams.length / 2);
+      const lowerTeams = matchListTeams.slice(matchListTeams.length / 2);
+      let matchups: Matchup[] = [];
+
+      const findMatchups = (allowedRematches: number) => {
+        if (upperTeams.length === 0) {
+          if (lowerTeams.length === 0) return true;
+          const [low1, low2] = lowerTeams.splice(0, 2);
+          if (!played(low1, low2)) {
+            matchups.push([low1, low2]);
+            return true;
+          }
+        } else if (lowerTeams.length === 0) {
+          const [up1, up2] = upperTeams.splice(0, 2);
+          if (!played(up1, up2)) {
+            matchups.push([up1, up2]);
+            return true;
+          }
         }
-      }
 
-      // Try to find opponent with a rematch
-      if (allowedRematches === 0) return null;
-      for (let i = teams.length - 1; i > 0; i--) {
-        const opponent = teams[i];
-        const newTeams = teams.filter((_, j) => j !== 0 && j !== i);
-        matchups = findMatchups(newTeams, allowedRematches - 1);
-        if (matchups) {
-          matchups.unshift([team, opponent]);
-          return matchups;
+        let success = false;
+        for (let i = 0; i < upperTeams.length; i++) {
+          const [up] = upperTeams.splice(i, 1);
+          for (let j = lowerTeams.length - 1; j >= 0; j--) {
+            const [low] = lowerTeams.splice(j, 1);
+            if (
+              played(up, low) &&
+              allowedRematches > 0 &&
+              findMatchups(allowedRematches - 1)
+            ) {
+              matchups.push([up, low]);
+              success = true;
+            } else if (!played(up, low) && findMatchups(allowedRematches)) {
+              matchups.push([up, low]);
+              success = true;
+            }
+            lowerTeams.splice(j, 0, low);
+            if (success) break;
+          }
+          upperTeams.splice(i, 0, up);
+          if (success) break;
         }
-      }
+        return success;
+      };
 
-      return null;
-    };
-
-    let matchups: Matchup[] | undefined;
-    for (let i = 0; i <= teams.length >> 1; i++) {
-      const candidate = findMatchups(matchListTeams, i);
-      if (candidate) {
-        matchups = candidate;
-        break;
+      for (let i = 0; i <= matchListTeams.length; i++) {
+        if (findMatchups(i)) return matchups;
       }
+      assert(false, 'We should eventually find a matching');
     }
-    assert(matchups, 'We should eventually find a matching');
 
+    // No rematches are possible in these rounds
+    const matchups: Matchup[] = [];
+    for (let i = 0; i < matchListTeams.length / 2; i++) {
+      matchups.push([
+        matchListTeams[i],
+        matchListTeams[matchListTeams.length - i - 1],
+      ]);
+    }
     return matchups;
   }
 }
