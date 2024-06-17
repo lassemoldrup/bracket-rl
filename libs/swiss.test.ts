@@ -144,3 +144,60 @@ test('Swiss produces correct advancing teams for Worlds Wildcard 21/22', () => {
   ))
     expect(winners).toContainEqual(team);
 });
+
+test('Swiss does not crash with random wins', () => {
+  const getFormat = () =>
+    new SwissFormat({
+      teams: namesToTeams(
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H',
+        'I',
+        'J',
+        'K',
+        'L',
+        'M',
+        'N',
+        'O',
+        'P'
+      ),
+      matchups: [
+        [0, 1],
+        [2, 3],
+        [4, 5],
+        [6, 7],
+        [8, 9],
+        [10, 11],
+        [12, 13],
+        [14, 15],
+      ],
+      matchScores: [
+        [null, null],
+        [null, null],
+        [null, null],
+        [null, null],
+        [null, null],
+        [null, null],
+        [null, null],
+        [null, null],
+      ],
+      winsNeeded: 3,
+    });
+
+  for (let i = 0; i < 1000; i++) {
+    const format = getFormat();
+    for (const match of format.matches) {
+      const winner = Math.random() < 0.5 ? 0 : 1;
+      match.slots[winner].score = 3;
+      match.slots[1 - winner].score = Math.floor(Math.random() * 3);
+    }
+    for (const winner of format.winners) {
+      expect(winner).not.toBeNull();
+    }
+  }
+});

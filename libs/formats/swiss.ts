@@ -231,6 +231,37 @@ export class SwissFormat implements Format {
 
       for (let i = 0; i <= matchListTeams.length; i++) {
         if (findMatchups(i)) return matchups;
+        // Must be round 5
+        assert(round === 4);
+        // I am not proud of this code
+        let top = upperTeams[0];
+        if (played(upperTeams[1], upperTeams[2])) {
+          if (played(top, upperTeams[2])) {
+            if (played(top, upperTeams[1])) {
+              continue;
+            } else {
+              matchups.push([top, upperTeams[1]]);
+              top = upperTeams[2];
+            }
+          } else {
+            matchups.push([top, upperTeams[2]]);
+            top = upperTeams[1];
+          }
+        } else {
+          matchups.push([upperTeams[1], upperTeams[2]]);
+        }
+
+        for (let j = lowerTeams.length - 1; j >= 0; j--) {
+          const low = lowerTeams[j];
+          const others = [lowerTeams[0], lowerTeams[1], lowerTeams[2]];
+          others.splice(j, 1);
+          if (!played(top, low) && !played(others[0], others[1])) {
+            matchups.unshift([top, low]);
+            matchups.push([others[0], others[1]]);
+            return matchups;
+          }
+        }
+        matchups = [];
       }
       assert(false, 'We should eventually find a matching');
     }
