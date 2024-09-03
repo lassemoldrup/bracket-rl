@@ -7,12 +7,14 @@ $match-width: 200px;
 $match-gap: 15px;
 $vertical-gap: 20px;
 
-.upper-bracket {
-  margin-bottom: $vertical-gap;
+.bracket-vertical-gap {
+  flex-basis: $vertical-gap;
+  flex-grow: 1;
 }
 
 .bracket {
   display: flex;
+  flex-grow: 1;
 }
 
 .column {

@@ -75,7 +75,11 @@ const Worlds2024Bracket = forwardRef(function (
   const grandFinalRef = useRef(null);
 
   return (
-    <div className={styles.playoffs} ref={ref}>
+    <div
+      className={styles.playoffs}
+      style={{ display: 'flex', flexDirection: 'column' }}
+      ref={ref}
+    >
       <Bracket className={styles['upper-bracket']}>
         <Column
           matches={playoffs.tiebreaker}
@@ -98,6 +102,7 @@ const Worlds2024Bracket = forwardRef(function (
         <BracketLinesColumn count={0} />
         <PhantomColumn bigMatches />
       </Bracket>
+      <div className={styles['bracket-vertical-gap']}></div>
       <Bracket>
         <Column
           matches={playoffs.lowerR1}
