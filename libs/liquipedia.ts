@@ -9,6 +9,7 @@ import {
   Team,
   SwissInitializer,
   WorldsInitializer,
+  Worlds2024Initializer,
 } from './types';
 import assert from 'assert';
 import manifest from '../package.json';
@@ -88,6 +89,30 @@ export const get2024Playoffs = cache(async function (
     ]) as MatchScore[];
 
   return { matchups: [], matchScores };
+});
+
+export const get2024WorldsPlayoffs = cache(async function (
+  event: string
+): Promise<Worlds2024Initializer> {
+  const swissTiebreakerSection = await getSection(event, 'Swiss Tiebreaker');
+  const tiebreakerMatchScores = (
+    swissTiebreakerSection.templates(MATCH) as WTFTemplate<Match>[]
+  )
+    .map((m) => m.json())
+    .map((m) => [
+      m.opponent1?.score ?? null,
+      m.opponent2?.score ?? null,
+    ]) as MatchScore[];
+  const playoffsMatchScores = (await get2024Playoffs(event)).matchScores;
+  const lbRound1 = playoffsMatchScores.splice(2, 2);
+  const matchScores = tiebreakerMatchScores
+    .concat(lbRound1)
+    .concat(playoffsMatchScores);
+
+  return {
+    teams: [],
+    matchScores,
+  };
 });
 
 async function getSwissFromSection(

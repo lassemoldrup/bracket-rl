@@ -5,6 +5,11 @@ $header-height: 40px;
 $horizontal-gap: 40px;
 $match-width: 200px;
 $match-gap: 15px;
+$vertical-gap: 20px;
+
+.upper-bracket {
+  margin-bottom: $vertical-gap;
+}
 
 .bracket {
   display: flex;
@@ -13,6 +18,14 @@ $match-gap: 15px;
 .column {
   display: flex;
   flex-direction: column;
+}
+
+.phantom-column {
+  width: $match-width;
+
+  &.big {
+    width: $match-width + 30px;
+  }
 }
 
 .inner-column {

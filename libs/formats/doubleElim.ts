@@ -57,7 +57,7 @@ export class DoubleElimBracket {
           3,
           this.upperQuarters[i >> 1].slots[i % 2],
           this.lowerR1[i >> 1].slots[i % 2],
-          teams as Matchup
+          teams
         )
     );
 

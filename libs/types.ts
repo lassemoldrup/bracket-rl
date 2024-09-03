@@ -27,6 +27,11 @@ export interface WorldsInitializer {
   matchScores: MatchScore[];
 }
 
+export interface Worlds2024Initializer {
+  teams: MaybeTeam[];
+  matchScores: MatchScore[];
+}
+
 export interface Format {
   clear(): void;
   setTeams(teams: MaybeTeam[]): void;

@@ -86,7 +86,6 @@ const WorldsGroups = forwardRef(function (
   ref: Ref<HTMLDivElement>
 ) {
   const groupBRef = useRef(null);
-  // const formatRef = useRef(null);
 
   return (
     <div className={styles['groups-container']}>

@@ -82,7 +82,7 @@ export const Column = forwardRef(function (
   return (
     <div className={styles.column}>
       <div className={styles['column-header']}>{title}</div>
-      <div className={classNames(styles['inner-column'])}>
+      <div className={styles['inner-column']}>
         {matches.map((node, i) => (
           <Match
             node={node}
@@ -97,6 +97,16 @@ export const Column = forwardRef(function (
     </div>
   );
 });
+
+export function PhantomColumn({ bigMatches }: { bigMatches?: boolean }) {
+  return (
+    <div
+      className={classNames(styles['phantom-column'], {
+        [styles['big']]: bigMatches,
+      })}
+    ></div>
+  );
+}
 
 export const Match = forwardRef(function (
   {
