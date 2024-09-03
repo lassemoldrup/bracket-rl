@@ -28,7 +28,6 @@ export default async function WorldsEvent({
       swissInit: await get2024Swiss(event_string),
       playoffsInit: await get2024WorldsPlayoffs(event_string),
     };
-    console.log(worldsProps);
     return <Worlds2024 {...worldsProps} />;
   } else {
     return notFound();
