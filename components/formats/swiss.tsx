@@ -17,6 +17,13 @@ const Swiss = forwardRef(function (
   ref: Ref<HTMLDivElement>
 ) {
   const roundRefs = _.range(format.rounds.length).map((_m) => useRef(null));
+  const listNames = [
+    ['0-0'],
+    ['1-0', '0-1'],
+    ['2-0', '1-1', '0-2'],
+    ['2-1', '1-2'],
+    ['2-2'],
+  ];
 
   return (
     <div className={styles['swiss-container']}>
@@ -25,6 +32,7 @@ const Swiss = forwardRef(function (
           <Round
             round={r}
             name={`Round ${i + 1}`}
+            listNames={listNames[i]}
             ref={roundRefs[i]}
             nextRef={roundRefs[i + 1]}
             redrawFormat={redrawFormat}
@@ -42,19 +50,17 @@ const Round = forwardRef(function (
   {
     round,
     name,
+    listNames,
     nextRef,
     redrawFormat,
   }: {
     round: SwissMatchList[];
     name: string;
+    listNames: string[];
   } & FormatProps,
   ref: ScoreRef
 ) {
   const matchRefs = _.range(round.length - 1).map((_m) => useRef(null));
-  let listNames: string[];
-  if (round.length === 1) listNames = [''];
-  else if (round.length === 2) listNames = ['High', 'Low'];
-  else listNames = ['High', 'Mid', 'Low'];
 
   return (
     <div className={styles.round}>
