@@ -15,7 +15,7 @@ export default async function WorldsEvent({
 }: {
   params: { season: string };
 }) {
-  let event_string = `Rocket_League_Championship_Series/${season}`;
+  const event_string = `Rocket_League_Championship_Series/${season}`;
   if (season === '2021-22' || season === '2022-23') {
     const worldsProps = {
       wildcardInit: await getWildcard(event_string),

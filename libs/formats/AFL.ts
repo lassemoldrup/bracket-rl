@@ -1,14 +1,8 @@
-import {
-  BracketInitializer,
-  Format,
-  MaybeTeam,
-  AFLInitializer,
-} from 'libs/types';
+import { Format, MaybeTeam, AFLInitializer } from 'libs/types';
 import { BracketNode } from './bracket';
 import _ from 'lodash';
 
-export class Worlds2024Playoffs implements Format {
-  tiebreaker: BracketNode[];
+export class AFLFormat implements Format {
   lowerR1: BracketNode[];
   upperQuarters: BracketNode[];
   lowerQuarters: BracketNode[];
@@ -39,15 +33,6 @@ export class Worlds2024Playoffs implements Format {
       new BracketNode(4, this.lowerQuarters[0].slots[1]),
       new BracketNode(4, this.lowerQuarters[1].slots[1]),
     ];
-    this.tiebreaker = [
-      new BracketNode(3, this.upperQuarters[1].slots[1]),
-      new BracketNode(
-        3,
-        this.upperQuarters[0].slots[1],
-        this.lowerR1[0].slots[0]
-      ),
-    ];
-    this.tiebreaker[0].lossSlot = this.tiebreaker[1].slots[0];
 
     this.setTeams(teams);
 
@@ -60,7 +45,6 @@ export class Worlds2024Playoffs implements Format {
 
   private get matchOrder(): BracketNode[] {
     return [
-      ...this.tiebreaker,
       ...this.lowerR1,
       ...this.upperQuarters,
       ...this.lowerQuarters,
@@ -79,9 +63,9 @@ export class Worlds2024Playoffs implements Format {
   setTeams(teams: MaybeTeam[]): void {
     this.upperQuarters[0].slots[0].team = teams[0];
     this.upperQuarters[1].slots[0].team = teams[1];
-    this.tiebreaker[0].slots[0].team = teams[2];
-    this.tiebreaker[0].slots[1].team = teams[3];
-    this.tiebreaker[1].slots[1].team = teams[4];
+    this.upperQuarters[1].slots[1].team = teams[2];
+    this.upperQuarters[0].slots[1].team = teams[3];
+    this.lowerR1[0].slots[0].team = teams[4];
     this.lowerR1[1].slots[0].team = teams[5];
     this.lowerR1[1].slots[1].team = teams[6];
     this.lowerR1[0].slots[1].team = teams[7];

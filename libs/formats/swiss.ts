@@ -15,13 +15,20 @@ import {
 export class SwissFormat implements Format {
   initialSeeding: Team[];
   rounds: SwissMatchList[][];
+  useBuchholz: boolean = false;
 
   // teams is the list of teams sorted by seeding.
   // matchups is the list of all matchups that have happened, given as indices in the teams array
   // not necessarily in any order. This design is due to the lack of structured data available.
   // matchScores is the scores of the matchups given in that same order.
   // winsNeeded is how many wins each team needs to win a match, e.g. 3 for BO5.
-  constructor({ teams, matchups, matchScores, winsNeeded }: SwissInitializer) {
+  constructor({
+    teams,
+    matchups,
+    matchScores,
+    winsNeeded,
+    useBuchholz,
+  }: SwissInitializer) {
     this.initialSeeding = teams;
     const layout = [[8], [4, 4], [2, 4, 2], [3, 3], [3]];
     this.rounds = layout.map((r, i) =>
@@ -31,6 +38,8 @@ export class SwissFormat implements Format {
       .slice(0, 8)
       .map((m) => [teams[m[0]], teams[m[1]]] as Matchup);
     this.rounds[0][0].setMatchups(firstRoundMatchups);
+
+    this.useBuchholz = useBuchholz;
 
     const matches = this.matches;
     for (let [matchup, scores] of _.zip(matchups, matchScores)) {
@@ -117,6 +126,31 @@ export class SwissFormat implements Format {
       }
     }
     return gameDiff;
+  }
+
+  getSeriesWins(team: Team): number {
+    let wins = 0;
+    for (let i = 0; i < 5; i++) {
+      for (const mL of this.rounds[i]) {
+        if (mL.matches.some((m) => m.winner === team)) wins++;
+      }
+    }
+    return wins;
+  }
+
+  getBuchholzScore(team: Team): number {
+    let score = 0;
+    for (let i = 0; i < 5; i++) {
+      for (const mL of this.rounds[i]) {
+        for (const m of mL.matches) {
+          if (m.winner !== team) continue;
+          const opponent = m.slots.find((s) => s.team !== team)!.team;
+          if (!opponent) continue;
+          score += this.getSeriesWins(opponent);
+        }
+      }
+    }
+    return score;
   }
 
   // TODO: refactor
@@ -300,13 +334,25 @@ export class SwissMatchList {
   }
 
   get winners(): MaybeTeam[] {
-    const gameDiff = this.format.getGameDiffs(this.round);
-    let res = this.matches.map((m) => m.winner);
-    res = _.sortBy(res, (t) =>
-      t ? this.format.initialSeeding.indexOf(t) : 1000000
-    );
-    res = _.sortBy(res, (t) => (t ? -gameDiff[t.name] : 1000000));
-    return res;
+    if (this.format.useBuchholz && this.round >= 2 && this.list == 0) {
+      // Seeding out of swiss
+      let res = this.matches.map((m) => m.winner);
+      res = _.sortBy(res, (t) =>
+        t ? this.format.initialSeeding.indexOf(t) : 1000000
+      );
+      res = _.sortBy(res, (t) =>
+        t ? this.format.getBuchholzScore(t) : 1000000
+      );
+      return res;
+    } else {
+      const gameDiff = this.format.getGameDiffs(this.round);
+      let res = this.matches.map((m) => m.winner);
+      res = _.sortBy(res, (t) =>
+        t ? this.format.initialSeeding.indexOf(t) : 1000000
+      );
+      res = _.sortBy(res, (t) => (t ? -gameDiff[t.name] : 1000000));
+      return res;
+    }
   }
 
   get isQualification(): boolean {

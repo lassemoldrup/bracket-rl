@@ -1,7 +1,7 @@
-import WorldsEvent from './Rocket_League_Championship_Series/[season]/page';
+import BirminghamMajorEvent from './Rocket_League_Championship_Series/[season]/Birmingham_Major/[[...event]]/page';
 
 export const revalidate = 60;
 
 export default async function Current(_props: {}) {
-  return <WorldsEvent params={{ season: '2024' }} />;
+  return <BirminghamMajorEvent params={{ season: '2025' }} />;
 }

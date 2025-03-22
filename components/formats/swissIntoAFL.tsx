@@ -11,8 +11,9 @@ import { Bracket, BracketLinesColumn, Column, PhantomColumn } from './bracket';
 import { FormatProps } from './format';
 import _ from 'lodash';
 import styles from 'styles/formats/Bracket.module.scss';
+import { AFLFormat } from 'libs/formats/AFL';
 
-export default function Worlds2024({
+export default function SwissIntoAFL({
   swissInit,
   playoffsInit,
 }: {
@@ -21,9 +22,7 @@ export default function Worlds2024({
 }) {
   const [tab, setTab] = useState(0);
   const [swiss, setSwiss] = useState(new SwissFormat(swissInit));
-  const [playoffs, setPlayoffs] = useState(
-    new Worlds2024Playoffs(playoffsInit)
-  );
+  const [playoffs, setPlayoffs] = useState(new AFLFormat(playoffsInit));
 
   const redrawSwiss = () => {
     playoffs.setTeams(swiss.winners);
@@ -48,7 +47,7 @@ export default function Worlds2024({
     <div>
       <Tabbed tabNames={['Swiss', 'Playoffs']} onChange={setTab}>
         <Swiss format={swiss} redrawFormat={redrawSwiss} ref={refs[0]} />
-        <Worlds2024Bracket
+        <AFLBracket
           playoffs={playoffs}
           redrawFormat={redrawPlayoffs}
           ref={refs[1]}
@@ -59,12 +58,12 @@ export default function Worlds2024({
   );
 }
 
-const Worlds2024Bracket = forwardRef(function (
+const AFLBracket = forwardRef(function (
   {
     playoffs,
     redrawFormat,
   }: {
-    playoffs: Worlds2024Playoffs;
+    playoffs: AFLFormat;
   } & FormatProps,
   ref: Ref<HTMLDivElement>
 ) {
@@ -81,13 +80,7 @@ const Worlds2024Bracket = forwardRef(function (
       ref={ref}
     >
       <Bracket className={styles['upper-bracket']}>
-        <Column
-          matches={playoffs.tiebreaker}
-          title="Swiss Tiebreaker"
-          bigMatches
-          redrawFormat={redrawFormat}
-          nextRef={lbRound1Ref}
-        />
+        <PhantomColumn bigMatches />
         <BracketLinesColumn count={0} />
         <Column
           matches={playoffs.upperQuarters}

@@ -1,6 +1,6 @@
 import wtf from 'wtf_wikipedia';
 import _, { get } from 'lodash';
-import { cache } from 'react';
+import { cache, use } from 'react';
 import eventOverrides from 'data/event-overrides.json';
 import {
   BracketInitializer,
@@ -9,7 +9,7 @@ import {
   Team,
   SwissInitializer,
   WorldsInitializer,
-  Worlds2024Initializer,
+  AFLInitializer,
 } from './types';
 import assert from 'assert';
 import manifest from '../package.json';
@@ -27,6 +27,8 @@ interface Match {
   opponent1?: TeamOpponent;
   opponent2?: TeamOpponent;
 }
+
+const STAGE = 'stage';
 
 type EventOverrides = { [event: string]: EventOverride };
 interface EventOverride {
@@ -93,7 +95,7 @@ export const get2024Playoffs = cache(async function (
 
 export const get2024WorldsPlayoffs = cache(async function (
   event: string
-): Promise<Worlds2024Initializer> {
+): Promise<AFLInitializer> {
   const swissTiebreakerSection = await getSection(event, 'Swiss Tiebreaker');
   const tiebreakerMatchScores = (
     swissTiebreakerSection.templates(MATCH) as WTFTemplate<Match>[]
@@ -115,10 +117,31 @@ export const get2024WorldsPlayoffs = cache(async function (
   };
 });
 
+export const get2025Swiss = cache(async function (
+  event: string
+): Promise<SwissInitializer> {
+  const section = await getSection(event, 'Detailed Results');
+  return await getSwissFromSection(event, section, 3, true);
+});
+
+export const getAFLPlayoffs = cache(async function (
+  event: string
+): Promise<AFLInitializer> {
+  const playoffsMatchScores = (await get2024Playoffs(event)).matchScores;
+  const lbRound1 = playoffsMatchScores.splice(2, 2);
+  const matchScores = lbRound1.concat(playoffsMatchScores);
+
+  return {
+    teams: [],
+    matchScores,
+  };
+});
+
 async function getSwissFromSection(
   event: string,
   section: WTFSection,
-  winsNeeded: number = 3
+  winsNeeded: number = 3,
+  useBuchholz: boolean = false
 ): Promise<SwissInitializer> {
   const subSections = section.children();
   if (!subSections || !Array.isArray(subSections))
@@ -159,7 +182,7 @@ async function getSwissFromSection(
     matchTeamOpponents.map((t) => t.score),
     2
   ) as MatchScore[];
-  return { teams, matchups, matchScores, winsNeeded };
+  return { teams, matchups, matchScores, winsNeeded, useBuchholz };
 }
 
 export const getWorldsMainEvent = cache(async function (
@@ -252,6 +275,21 @@ function extendTemplates(_models: any, templates: any): void {
     };
     list.push(parsed);
     return JSON.stringify(parsed);
+  };
+
+  templates.stage = (
+    tmpl: string,
+    list: object[],
+    parse: (tmpl: string) => any
+  ) => {
+    const obj = parse(tmpl);
+    let name = (obj.list as string[])[0];
+    const parsed = {
+      name: name,
+      template: STAGE,
+    };
+    list.push(parsed);
+    return name;
   };
 }
 

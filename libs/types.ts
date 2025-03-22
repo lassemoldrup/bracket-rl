@@ -20,6 +20,7 @@ export interface SwissInitializer {
   matchups: [number, number][];
   winsNeeded: number;
   matchScores: MatchScore[];
+  useBuchholz: boolean;
 }
 
 export interface WorldsInitializer {
@@ -27,7 +28,7 @@ export interface WorldsInitializer {
   matchScores: MatchScore[];
 }
 
-export interface Worlds2024Initializer {
+export interface AFLInitializer {
   teams: MaybeTeam[];
   matchScores: MatchScore[];
 }
