@@ -11,10 +11,11 @@ import { notFound } from 'next/navigation';
 import Worlds2024 from 'components/formats/worlds2024';
 
 export default async function WorldsEvent({
-  params: { season },
+  params,
 }: {
-  params: { season: string };
+  params: Promise<{ season: string }>;
 }) {
+  const { season } = await params;
   const event_string = `Rocket_League_Championship_Series/${season}`;
   if (season === '2021-22' || season === '2022-23') {
     const worldsProps = {
